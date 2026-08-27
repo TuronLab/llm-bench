@@ -5,6 +5,7 @@ unless the user points to an already-running instance (`manage: false`).
 
 from __future__ import annotations
 
+import json
 import logging
 
 import httpx
@@ -80,8 +81,31 @@ class OllamaProvider(Provider):
     def pull_configured_models(self) -> None:
         for model in self.config.options.get("pull_models", []):
             logger.info("Pulling Ollama model %s", model)
-            response = httpx.post(f"{self._base()}/api/pull", json={"name": model}, timeout=None)
-            response.raise_for_status()
+            last_percent = -1
+            with httpx.stream(
+                "POST", f"{self._base()}/api/pull", json={"name": model}, timeout=None
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    event = json.loads(line)
+                    status = event.get("status", "unknown")
+                    completed = event.get("completed")
+                    total = event.get("total")
+                    if completed is not None and total:
+                        percent = completed * 100 / total
+                        if int(percent) <= last_percent:
+                            continue
+                        last_percent = int(percent)
+                        logger.info(
+                            "Ollama model %s: %s (%.1f%%)",
+                            model,
+                            status,
+                            percent,
+                        )
+                    else:
+                        logger.info("Ollama model %s: %s", model, status)
             logger.info("Finished pulling Ollama model %s", model)
 
     def list_models(self) -> list[ModelInfo]:
