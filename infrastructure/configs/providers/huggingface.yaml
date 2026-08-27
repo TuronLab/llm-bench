@@ -1,0 +1,10 @@
+type: huggingface
+options:
+  model: google/gemma-3-1b-it
+  device: cpu       # mps on Apple Silicon, cuda on NVIDIA
+  dtype: auto
+  batch_size: auto
+  trust_remote_code: false
+  # revision: main
+supports_concurrency: false
+keep_alive: false

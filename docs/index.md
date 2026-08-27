@@ -35,7 +35,7 @@ export BENCHLAB_API_URL=http://localhost:8000/api/v1
 llm-bench experiment run experiments/examples/quickstart.yaml
 ```
 
-The native CLI only needs an accessible API service. Managed vLLM, Ollama, and llama.cpp providers still require Docker; use `openai_compatible` or Ollama with `manage: false` for an external setup.
+The native CLI only needs an accessible API service. Managed vLLM, Ollama, and llama.cpp providers still require Docker; the Hugging Face provider runs locally through Transformers. Use `openai_compatible` or Ollama with `manage: false` for an external setup.
 
 For development, install the local API group and run it without Compose:
 

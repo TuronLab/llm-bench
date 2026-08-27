@@ -58,7 +58,9 @@ docker compose up -d backend
 docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
-Managed vLLM, Ollama, and llama.cpp providers require Docker. For a fully external setup, use `openai_compatible` or Ollama with `manage: false`.
+Managed vLLM, Ollama, and llama.cpp providers require Docker. Hugging Face runs
+locally through Transformers and does not start a provider container. For a fully
+external setup, use `openai_compatible` or Ollama with `manage: false`.
 
 ### macOS and Apple Silicon
 

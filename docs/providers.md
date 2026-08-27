@@ -80,6 +80,24 @@ the mechanism used by Apple Metal.
 
 Set `endpoint`, `api_key` when required, and a fallback `model` name. This provider is unmanaged: it only connects to an already-running service. See [`openai_compatible.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/openai_compatible.yaml).
 
+### Hugging Face (local Transformers)
+
+The `huggingface` provider loads a model from Hugging Face through
+`lm-evaluation-harness`'s native `hf` backend. It does not start a server or
+container, and downloads model weights to the local Hugging Face cache.
+
+```yaml
+provider:
+  type: huggingface
+  options:
+    model: google/gemma-3-1b-it
+    device: mps       # cpu, mps (Apple Silicon), or cuda
+    dtype: auto
+```
+
+Use `device: mps` when the backend runs natively on an Apple Silicon Mac. A
+backend running in Docker cannot access Apple's Metal GPU, so use `cpu` there.
+
 ## Execution settings
 
 Use `sequential` by default. In `parallel` mode, `workers` limits job concurrency, but local providers remain serialized unless you explicitly set `supports_concurrency: true`. Set that flag only for an endpoint that can safely handle concurrent requests.

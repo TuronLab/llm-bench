@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from infrastructure.providers.base import Provider, ProviderConfig
 from infrastructure.providers.llamacpp_provider import LlamaCppProvider
+from infrastructure.providers.huggingface_provider import HuggingFaceProvider
 from infrastructure.providers.ollama_provider import OllamaProvider
 from infrastructure.providers.openai_compatible_provider import OpenAICompatibleProvider
 from infrastructure.providers.vllm_provider import VLLMProvider
@@ -21,6 +22,7 @@ _REGISTRY: dict[str, type[Provider]] = {
     "ollama": OllamaProvider,
     "llamacpp": LlamaCppProvider,
     "openai_compatible": OpenAICompatibleProvider,
+    "huggingface": HuggingFaceProvider,
 }
 
 

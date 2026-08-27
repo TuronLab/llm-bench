@@ -39,6 +39,14 @@ PROVIDER_CONFIG_SCHEMAS: dict[str, list[dict]] = {
         {"key": "api_key", "label": "API Key", "type": "secret"},
         {"key": "model", "label": "Model", "type": "string", "required": True},
     ],
+    "huggingface": [
+        {"key": "model", "label": "Model ID", "type": "string", "required": True},
+        {"key": "device", "label": "Device", "type": "string", "default": "cpu"},
+        {"key": "dtype", "label": "Dtype", "type": "string", "default": "auto"},
+        {"key": "batch_size", "label": "Batch Size", "type": "string", "default": "auto"},
+        {"key": "trust_remote_code", "label": "Trust Remote Code", "type": "boolean", "default": False},
+        {"key": "revision", "label": "Revision", "type": "string"},
+    ],
 }
 
 
