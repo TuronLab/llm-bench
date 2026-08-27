@@ -32,7 +32,9 @@ models:
   - example-large:Q4_K_M
   - example-small:fp16
 
-benchmarks: [arc_easy, boolq]
+# Ollama uses a chat-completion endpoint. Choose generation tasks: multiple-choice
+# tasks such as arc_easy require token log-likelihoods, which chat endpoints lack.
+benchmarks: [gsm8k, truthfulqa_gen]
 execution:
   mode: sequential
   workers: 1
