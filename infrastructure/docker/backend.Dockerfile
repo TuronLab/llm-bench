@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Backend service: FastAPI orchestration API + benchmark runner.
 #
 # This image bundles lm-evaluation-harness and the Docker CLI/SDK so the
@@ -6,9 +7,12 @@
 # in via docker-compose.yml as a bind-mounted socket).
 FROM python:3.11-slim
 
+COPY --from=ghcr.io/astral-sh/uv:0.12.1 /uv /uvx /bin/
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    BENCHLAB_ROOT=/app
+    BENCHLAB_ROOT=/app \
+    UV_SYSTEM_PYTHON=1
 
 WORKDIR /app
 
@@ -17,7 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY apps/api/requirements.txt /app/apps/api/requirements.txt
-RUN pip install --no-cache-dir -r /app/apps/api/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r /app/apps/api/requirements.txt
 
 # Application code: API, execution core, and infrastructure adapters.
 COPY apps /app/apps
