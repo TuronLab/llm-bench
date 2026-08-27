@@ -1,0 +1,30 @@
+# Generic experiment definition template.
+# Copy this file, fill in the blanks, then:
+#   bench experiment validate my-experiment.yaml
+#   bench experiment run my-experiment.yaml
+
+name: my-experiment
+description: "Optional human-readable description of what this experiment measures."
+
+provider:
+  type: ollama              # vllm | ollama | llamacpp | openai_compatible
+  name: null                 # optional instance name; defaults to `type`
+  options: {}                 # see infrastructure/configs/providers/<type>.yaml for the schema
+  keep_alive: false            # leave the provider running after the experiment finishes
+  supports_concurrency: false   # true only if this provider instance can safely serve >1 request at once
+
+models:
+  - model-a
+  - model-b
+
+benchmarks:
+  - mmlu
+  - gsm8k
+
+execution:
+  mode: sequential    # sequential | parallel
+  workers: 1            # only used when mode is 'parallel'
+
+# Extra flags forwarded verbatim to every `lm_eval` invocation in this
+# experiment, e.g. {num_fewshot: 5, limit: 100} for a fast smoke test.
+extra_harness_args: {}

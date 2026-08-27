@@ -88,35 +88,38 @@ implements the same `Provider` interface (`start`, `stop`, `wait_until_ready`, `
 `endpoint`). The scheduler and the harness runner only ever talk to that interface, so adding a
 new backend never touches orchestration code (see [Adding New Providers](#adding-new-providers)).
 
-### Package layout
+### Repository layout
 
 ```text
-backend/     FastAPI REST API + orchestration services (experiment_service.py is the workflow engine)
-frontend/    React + Vite web dashboard
-cli/         Typer-based `bench` CLI, a thin REST client
-runner/      Builds & executes the lm-evaluation-harness CLI invocation, parses results
-scheduler/   Sequential/parallel job scheduling with per-provider concurrency safety
-providers/   Provider abstraction + vLLM/Ollama/llama.cpp/OpenAI-compatible implementations
-storage/     Shared data models (Pydantic) + JSON-file-backed persistence for experiments/results
-templates/   Reusable experiment/provider/docker-compose templates
-configs/     Default configuration + per-provider option templates
-experiments/ Persisted experiment history (JSON) + example experiment YAMLs
-results/     Persisted benchmark results (JSON), one file per model
-docker/      Dockerfiles for backend, frontend, and CLI + nginx config
-tests/       Fault-isolation sanity tests for the scheduler
+apps/                         User-facing applications
+├── api/                      FastAPI REST API and experiment workflow
+├── cli/                      Typer-based `bench` REST client
+└── web/                      React + Vite dashboard
+core/                         Provider-independent execution logic
+├── runner/                   Invokes lm-evaluation-harness and parses results
+└── scheduler/                Schedules jobs and enforces concurrency safety
+infrastructure/               External-system adapters and operational resources
+├── providers/                vLLM, Ollama, llama.cpp, and OpenAI-compatible adapters
+├── storage/                  Pydantic models and JSON-backed persistence
+├── configs/                  Global defaults and provider option templates
+├── docker/                   Dockerfiles, nginx configuration, provider assets
+└── templates/                Reusable experiment and provider templates
+experiments/                  Persisted experiment history and example YAMLs
+results/                      Persisted benchmark results, one file per model
+tests/                        Fault-isolation sanity tests
 ```
 
 ### Why the backend also runs the harness
 
 The spec describes a "Benchmark Runner" as a conceptually separate responsibility from the
-"Backend" API — and in this codebase it *is* separate at the package level: `runner/` contains no
+"Backend" API — and in this codebase it *is* separate at the package level: `core/runner/` contains no
 FastAPI, HTTP, or scheduling code, only the logic to build and execute an `lm_eval` invocation and
 parse its output. In this reference deployment, the backend container imports and calls that
 package directly (in a background thread per experiment) since it already needs `lm-evaluation-harness`
 installed to build harness commands and already holds the Docker socket needed to manage provider
 containers. If you need to scale evaluation execution independently of the API (e.g. many
-concurrent experiments across a fleet), the `runner/`, `scheduler/`, and `storage/` packages are
-already decoupled from `backend/app` and can be lifted into a standalone worker service/container
+concurrent experiments across a fleet), the `core/runner/`, `core/scheduler/`, and `infrastructure/storage/` packages are
+already decoupled from `apps/api/app` and can be lifted into a standalone worker service/container
 communicating over a queue without changing their internals.
 
 ---
@@ -140,9 +143,9 @@ communicating over a queue without changing their internals.
 
 ```text
 docker-compose.yml
-├── backend    → docker/backend.Dockerfile   (FastAPI + lm-eval + Docker SDK)
-├── frontend   → docker/frontend.Dockerfile  (Vite build served by nginx)
-└── cli        → docker/cli.Dockerfile       (one-shot `bench` invocations)
+├── backend    → infrastructure/docker/backend.Dockerfile   (FastAPI + lm-eval + Docker SDK)
+├── frontend   → infrastructure/docker/frontend.Dockerfile  (Vite build served by nginx)
+└── cli        → infrastructure/docker/cli.Dockerfile       (one-shot `bench` invocations)
 ```
 
 Provider containers (vLLM, Ollama, llama.cpp) are **not** declared as static `docker-compose`
@@ -156,7 +159,7 @@ containers are ephemeral by default.
 user-defined bridge network as the backend (`benchlab-network`) and are addressed by **container
 name**, not `localhost` — `localhost` inside the backend container would never reach a sibling
 container's published port. Each provider's `endpoint()` implementation reflects this (see
-`providers/vllm_provider.py`, `providers/ollama_provider.py`, `providers/llamacpp_provider.py`).
+`infrastructure/providers/vllm_provider.py`, `infrastructure/providers/ollama_provider.py`, `infrastructure/providers/llamacpp_provider.py`).
 Host port bindings are still published for convenience (e.g. `curl localhost:8000/v1/models` for
 manual debugging), but backend↔provider traffic always goes over the internal network.
 
@@ -227,7 +230,7 @@ cat results/llama3.2_1b.json | jq '.[0].metrics'
 
 ## Configuration
 
-Global defaults live in `configs/default.yaml`:
+Global defaults live in `infrastructure/configs/default.yaml`:
 
 ```yaml
 storage:
@@ -247,7 +250,7 @@ harness:
     batch_size: auto
 ```
 
-Every path is overridable via environment variables (see `storage/paths.py`):
+Every path is overridable via environment variables (see `infrastructure/storage/paths.py`):
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -260,7 +263,7 @@ Every path is overridable via environment variables (see `storage/paths.py`):
 | `BENCHLAB_CORS_ORIGINS` | `*` | Backend CORS allow-list |
 | `BENCHLAB_LOG_LEVEL` | `INFO` | Backend log verbosity |
 
-Provider-specific configuration schemas and defaults live in `configs/providers/*.yaml` — see
+Provider-specific configuration schemas and defaults live in `infrastructure/configs/providers/*.yaml` — see
 [Provider Configuration](#provider-configuration).
 
 ---
@@ -320,7 +323,7 @@ extra_harness_args:
   num_fewshot: 5
 ```
 
-Copy `templates/experiment_template.yaml` as a starting point, or see `experiments/examples/` for
+Copy `infrastructure/templates/experiment_template.yaml` as a starting point, or see `experiments/examples/` for
 two ready-to-run samples (`quickstart.yaml` for Ollama, `multi_provider.yaml` for vLLM).
 
 ### Via the CLI wizard
@@ -345,7 +348,7 @@ Execution → Review, showing only the configuration fields relevant to the prov
 
 - **Sequential** (`execution.mode: sequential`): jobs run strictly one after another.
 - **Parallel** (`execution.mode: parallel`, `workers: N`): up to `N` jobs run concurrently. The
-  scheduler (`scheduler/scheduler.py`) still serializes any two jobs that would hit the *same*
+  scheduler (`core/scheduler/scheduler.py`) still serializes any two jobs that would hit the *same*
   provider instance unless that provider explicitly declares `supports_concurrency: true` — so a
   single-GPU vLLM/Ollama/llama.cpp instance is never double-booked, even in parallel mode.
   `supports_concurrency: true` makes sense for remote APIs (OpenAI, Azure, etc.) that can happily
@@ -370,7 +373,7 @@ This is enforced at three layers, from narrowest to broadest:
    the specific job, not the whole run.
 
 3. **Experiment-level** — the entire orchestration routine runs inside a top-level safety-net
-   try/except (`_run_experiment_safe` in `backend/app/services/experiment_service.py`). Anything
+   try/except (`_run_experiment_safe` in `apps/api/app/services/experiment_service.py`). Anything
    truly unexpected that escapes the two layers above is caught, logged, and reflected as job/
    experiment failure instead of leaving an experiment silently stuck in `RUNNING` forever.
 
@@ -399,7 +402,7 @@ docker compose run --rm backend python -m tests.test_experiment_fault_isolation_
 ## CLI Reference
 
 All commands are namespaced under `bench` (run as `docker compose run --rm cli <command>`, or
-`python -m cli.main <command>` if working outside Docker with `BENCHLAB_API_URL` set).
+`python -m apps.cli.main <command>` if working outside Docker with `BENCHLAB_API_URL` set).
 
 | Command | Description |
 |---|---|
@@ -438,7 +441,7 @@ All commands are namespaced under `bench` (run as `docker compose run --rm cli <
 ## Provider Configuration
 
 Each provider's configuration schema is also served live from `GET /api/v1/providers` (which is
-what powers the web wizard's dynamic form), and templated in `configs/providers/*.yaml`.
+what powers the web wizard's dynamic form), and templated in `infrastructure/configs/providers/*.yaml`.
 
 ### vLLM
 
@@ -489,28 +492,28 @@ Nothing is started or stopped for this provider type — it's always-on and unma
 
 ## Adding New Providers
 
-1. Implement `providers/<name>_provider.py`, subclassing `providers.base.Provider` and
+1. Implement `infrastructure/providers/<name>_provider.py`, subclassing `infrastructure.providers.base.Provider` and
    implementing `start`, `stop`, `_health_check`, `list_models`, and `endpoint`.
-2. Register it in `providers/registry.py`:
+2. Register it in `infrastructure/providers/registry.py`:
    ```python
    _REGISTRY["my_provider"] = MyProvider
    ```
 3. Add its configuration schema to `PROVIDER_CONFIG_SCHEMAS` in
-   `backend/app/api/routes/providers.py` so the web wizard renders the right fields.
-4. Add a template at `configs/providers/my_provider.yaml`.
+   `apps/api/app/api/routes/providers.py` so the web wizard renders the right fields.
+4. Add a template at `infrastructure/configs/providers/my_provider.yaml`.
 5. If it can only serve one model per running instance (like vLLM/llama.cpp), add its type to
    `SINGLE_MODEL_PROVIDER_TYPES` and map its "which model" option key in `_MODEL_OPTION_KEY`,
-   both in `backend/app/services/experiment_service.py`.
+   both in `apps/api/app/services/experiment_service.py`.
 
 No other file needs to change — the scheduler, runner, CLI, and frontend are all written against
 the `Provider` interface, not against specific implementations. See
-`templates/docker-compose.provider.template.yml` for a walkthrough with a custom Docker image.
+`infrastructure/templates/docker-compose.provider.template.yml` for a walkthrough with a custom Docker image.
 
 ---
 
 ## Adding New Benchmarks
 
-Benchmarks are never hand-maintained in this codebase — `backend/app/services/benchmarks_service.py`
+Benchmarks are never hand-maintained in this codebase — `apps/api/app/services/benchmarks_service.py`
 queries lm-evaluation-harness's own `TaskManager` registry directly, so every benchmark the
 installed harness version supports (including custom YAML task definitions you drop into its
 `tasks/` directory) is automatically available to experiments, the CLI, and the web wizard. To add
@@ -597,18 +600,18 @@ Running the backend and frontend outside Docker (faster iteration loop):
 # Backend
 cd llm-benchmarking-framework
 python -m venv .venv && source .venv/bin/activate
-pip install -r backend/requirements.txt
+pip install -r apps/api/requirements.txt
 export BENCHLAB_ROOT=$(pwd)
-uvicorn backend.app.main:app --reload
+uvicorn apps.api.app.main:app --reload
 
 # Frontend (separate terminal)
-cd frontend
+cd apps/web
 npm install
 npm run dev   # proxies /api to http://localhost:8000, see vite.config.js
 ```
 
 Note: launching real provider containers still requires Docker even in this mode, since
-`providers/docker_runtime.py` talks to the Docker Engine API directly.
+`infrastructure/providers/docker_runtime.py` talks to the Docker Engine API directly.
 
 Run the fault-isolation tests (no Docker required):
 
@@ -656,7 +659,7 @@ startup reconciliation pass that detects and re-flags such orphaned runs.
 ## Frequently Asked Questions
 
 **Does this framework reimplement any benchmark logic?**
-No. Every evaluation is delegated to `lm-evaluation-harness` as a subprocess; `runner/harness_runner.py`
+No. Every evaluation is delegated to `lm-evaluation-harness` as a subprocess; `core/runner/harness_runner.py`
 only builds the CLI invocation and parses its JSON output.
 
 **Can I benchmark a model I'm already serving myself (not via this framework)?**
@@ -664,7 +667,7 @@ Yes — set `manage: false` for Ollama and point it at your `host`/`port`, or us
 `openai_compatible` provider for any other already-running OpenAI-compatible endpoint.
 
 **What happens if I list the same benchmark for the same model twice across two runs?**
-Both results are kept. `storage/result_store.py` appends new entries by default; pass
+Both results are kept. `infrastructure/storage/result_store.py` appends new entries by default; pass
 `overwrite=True` (exposed as future CLI/API flag if you need it) to replace instead.
 
 **Why doesn't `vllm`/`llamacpp` support listing available models ahead of time?**
@@ -680,5 +683,5 @@ provider's `supports_concurrency` flag (see [Execution Modes & Fault Isolation](
 No — experiments and results are plain JSON files under `experiments/` and `results/`. This keeps
 the "only persist what's necessary, everything else ephemeral" requirement simple and auditable
 (you can `cat`/`jq` any of it directly). The storage layer is isolated behind
-`storage/experiment_store.py` / `storage/result_store.py` if you want to swap in a real database
+`infrastructure/storage/experiment_store.py` / `infrastructure/storage/result_store.py` if you want to swap in a real database
 later.

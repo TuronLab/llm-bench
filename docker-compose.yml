@@ -21,7 +21,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: docker/backend.Dockerfile
+      dockerfile: infrastructure/docker/backend.Dockerfile
     image: benchlab-backend:latest
     container_name: benchlab-backend
     ports:
@@ -48,7 +48,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: docker/frontend.Dockerfile
+      dockerfile: infrastructure/docker/frontend.Dockerfile
     image: benchlab-frontend:latest
     container_name: benchlab-frontend
     ports:
@@ -62,7 +62,7 @@ services:
   cli:
     build:
       context: .
-      dockerfile: docker/cli.Dockerfile
+      dockerfile: infrastructure/docker/cli.Dockerfile
     image: benchlab-cli:latest
     container_name: benchlab-cli
     environment:

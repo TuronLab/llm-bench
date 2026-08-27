@@ -14,9 +14,9 @@ or, without pytest installed, simply:
 
 from __future__ import annotations
 
-from scheduler.job import ScheduledJob
-from scheduler.scheduler import Scheduler
-from storage.schemas import ExecutionMode, JobRecord, JobStatus
+from core.scheduler.job import ScheduledJob
+from core.scheduler.scheduler import Scheduler
+from infrastructure.storage.schemas import ExecutionMode, JobRecord, JobStatus
 
 
 def _make_job(model: str, benchmark: str, should_fail: bool, calls: list[str]):

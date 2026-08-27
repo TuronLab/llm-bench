@@ -1,8 +1,8 @@
 """
 End-to-end regression test for fault isolation through the real REST API.
 
-This exercises `backend.app.services.experiment_service` exactly as the API
-does (create -> run -> poll), with fake providers/harness calls standing in
+This exercises `apps.api.app.services.experiment_service` exactly as the API
+does (create -> run -> poll), with fake infrastructure/providers/harness calls standing in
 for Docker and lm-evaluation-harness so it runs anywhere without
 dependencies. It specifically guards against a real bug found during
 development: an early version only caught `(ProviderError, ValueError)`
@@ -22,9 +22,9 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from backend.app.main import app
-from providers.base import ModelInfo, ProviderStatus
-from storage.schemas import BenchmarkResult, ResultMetadata
+from apps.api.app.main import app
+from infrastructure.providers.base import ModelInfo, ProviderStatus
+from infrastructure.storage.schemas import BenchmarkResult, ResultMetadata
 
 client = TestClient(app)
 
@@ -95,10 +95,10 @@ def test_single_model_provider_start_failure_is_isolated_to_that_model():
     the other models in the same experiment.
     """
     with patch(
-        "backend.app.services.experiment_service.create_provider",
+        "apps.api.app.services.experiment_service.create_provider",
         side_effect=lambda cfg: _FakeSingleModelProvider(cfg, fail_models={"broken-model"}),
     ), patch(
-        "backend.app.services.experiment_service.run_benchmark",
+        "apps.api.app.services.experiment_service.run_benchmark",
         side_effect=_fake_run_benchmark,
     ):
         definition = {
