@@ -5,17 +5,17 @@ const formatSeconds = (value) => value === null || value === undefined ? "-" : `
 const formatRate = (value) => value === null || value === undefined ? "-" : `${value.toFixed(2)} tok/s`;
 
 function MetricHelp() {
-  return <details className="panel metric-help" open>
-    <summary>¿Qué significa cada métrica?</summary>
+  return <details className="panel metric-help">
+    <summary>What does each metric mean?</summary>
     <dl>
-      <dt>TTFT p50</dt><dd>Tiempo mediano hasta recibir el primer token. Representa el comportamiento típico de inicio de respuesta.</dd>
-      <dt>Latency p95</dt><dd>Tiempo total hasta completar la respuesta en el percentil 95. Ayuda a detectar las peticiones lentas bajo carga.</dd>
-      <dt>Output total</dt><dd>Tokens por segundo agregados entre todas las peticiones del nivel de concurrencia. Mide la capacidad total del servidor.</dd>
-      <dt>Output/user</dt><dd>Media de tokens por segundo de cada respuesta individual, desde su primer token hasta el último. Es la velocidad percibida por cada usuario.</dd>
-      <dt>Errors</dt><dd>Peticiones fallidas respecto al total, mostradas como fallos/total.</dd>
-      <dt>users</dt><dd>Número de peticiones que se mantienen simultáneamente activas en ese nivel de carga.</dd>
+      <dt>TTFT p50</dt><dd>Median time until the first token is received. It represents the typical response start time.</dd>
+      <dt>Latency p95</dt><dd>Total time until the response is complete at the 95th percentile. It helps identify slow requests under load.</dd>
+      <dt>Output total</dt><dd>Aggregate output tokens per second across all requests at that concurrency level. It measures total server capacity.</dd>
+      <dt>Output/user</dt><dd>Mean tokens per second for each individual response, measured from its first token to its last. It represents the speed perceived by each user.</dd>
+      <dt>Errors</dt><dd>Failed requests relative to the total, displayed as failed/total.</dd>
+      <dt>users</dt><dd>Number of requests kept active simultaneously at that load level.</dd>
     </dl>
-    <p className="metric-note">p50 es la mediana; p95 indica que el 95% de las peticiones terminó en ese tiempo o menos. Un asterisco (*) indica que el número de tokens fue estimado porque el provider no informó del uso real.</p>
+    <p className="metric-note">p50 is the median; p95 means that 95% of requests completed within that time or less. An asterisk (*) indicates that the token count was estimated because the provider did not report actual usage.</p>
   </details>;
 }
 

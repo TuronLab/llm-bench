@@ -82,6 +82,7 @@ th.sortable-header { cursor: pointer; user-select: none; }
 th.sortable-header:hover { color: var(--text); }
 th.group-header { text-align: center; border-left: 1px solid var(--border); }
 .scalability-table td:nth-child(5n + 3) { border-left: 1px solid var(--border); }
+.scalability-table thead tr:nth-child(2) th:nth-child(5n + 1) { border-left: 1px solid var(--border); }
 
 td.score-cell { cursor: pointer; color: var(--accent); }
 td.score-cell:hover { text-decoration: underline; }
