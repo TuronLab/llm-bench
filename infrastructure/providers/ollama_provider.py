@@ -80,7 +80,9 @@ class OllamaProvider(Provider):
     def pull_configured_models(self) -> None:
         for model in self.config.options.get("pull_models", []):
             logger.info("Pulling Ollama model %s", model)
-            httpx.post(f"{self._base()}/api/pull", json={"name": model}, timeout=None)
+            response = httpx.post(f"{self._base()}/api/pull", json={"name": model}, timeout=None)
+            response.raise_for_status()
+            logger.info("Finished pulling Ollama model %s", model)
 
     def list_models(self) -> list[ModelInfo]:
         try:
