@@ -23,7 +23,7 @@ provider:
   type: ollama
   options:
     manage: true
-    gpus: true
+    gpus: false  # opt in only on a host with NVIDIA Container Toolkit
     pull_models:
       - example-large:Q4_K_M
       - example-small:fp16
@@ -51,6 +51,26 @@ Remove `limit` for a final score. Use a small `limit` only for a smoke test, and
 ### Ollama
 
 With `manage: true` (the default), the framework creates an Ollama container. `pull_models` lists the tags to pull after it is ready, and `models_volume` can preserve downloads between runs. With `manage: false`, it connects to `host` and `port` instead and never starts or stops Ollama. See [`ollama.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/ollama.yaml).
+
+#### macOS / Apple Silicon
+
+Apple GPUs are exposed through Metal rather than CUDA. To use Metal, install
+and run Ollama directly on macOS; an Ollama container launched by Docker
+Desktop is normally CPU-only. Keep the benchmark backend in Docker if desired,
+but set Ollama to external mode and use Docker Desktop's host name:
+
+```yaml
+provider:
+  type: ollama
+  options:
+    manage: false
+    host: host.docker.internal
+    port: 11434
+```
+
+When the backend runs natively on macOS, use `host: localhost` instead. Do not
+set `gpus: true` for this setup: that option requests NVIDIA devices and is not
+the mechanism used by Apple Metal.
 
 ### llama.cpp
 

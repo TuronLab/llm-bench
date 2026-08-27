@@ -21,11 +21,24 @@ api = [
     "docker==7.1.0",
     "fastapi==0.115.0",
     "lm-eval==0.4.5",
+    "torch",
     "uvicorn[standard]==0.30.6",
 ]
 dev = [
     "pytest==8.3.3",
 ]
+
+# lm-eval depends on PyTorch.  PyPI's Linux wheels now include the CUDA runtime
+# dependencies, which adds several GB to an otherwise CPU-only installation.
+# Keep the default backend small and portable; users who need GPU execution run
+# vLLM in its own provider image and can opt into its NVIDIA runtime there.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

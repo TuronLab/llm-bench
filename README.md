@@ -10,7 +10,9 @@ The project is intended for controlled comparisons that public leaderboards do n
 
 To use `llm-bench`, start `backend`, which runs evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
 
-Prerequisites: Docker Engine 24+ and Docker Compose v2. GPU-backed providers also need the NVIDIA Container Toolkit.
+Prerequisites: Docker Engine 24+ and Docker Compose v2. The default installation and
+quickstart are CPU-only; install the NVIDIA Container Toolkit only if you explicitly
+enable GPU-backed providers.
 
 ```bash
 docker compose up -d --build backend frontend
@@ -57,6 +59,26 @@ docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
 Managed vLLM, Ollama, and llama.cpp providers require Docker. For a fully external setup, use `openai_compatible` or Ollama with `manage: false`.
+
+### macOS and Apple Silicon
+
+Macs use Apple's Metal GPU, not NVIDIA CUDA. Ollama uses Metal when it runs
+directly on macOS, but Docker Desktop containers normally run CPU-only. To use
+the Mac GPU, install Ollama on macOS, start it there, and configure the provider
+as externally managed:
+
+```yaml
+provider:
+  type: ollama
+  options:
+    manage: false
+    host: host.docker.internal  # backend in Docker Desktop
+    port: 11434
+```
+
+If the backend also runs natively on macOS, use `host: localhost` instead.
+The benchmark backend can remain in Docker; only the Ollama model server needs
+to run natively to access Metal.
 
 ## Comparing model variants fairly
 

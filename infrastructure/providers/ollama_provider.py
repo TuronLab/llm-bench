@@ -26,7 +26,7 @@ class OllamaProvider(Provider):
         manage (bool): if True (default), launch/stop a container. If False,
             connect to an externally managed instance instead.
         image (str): default "ollama/ollama:latest".
-        gpus (bool): default True.
+        gpus (bool): default False; set True only for NVIDIA-enabled Docker hosts.
         models_volume (str): host path mounted at /root/.ollama for model cache.
         pull_models (list[str]): models to `ollama pull` right after startup.
     """
@@ -55,7 +55,7 @@ class OllamaProvider(Provider):
                 image=opts.get("image", DEFAULT_IMAGE),
                 ports={f"{DEFAULT_PORT}/tcp": self._port},
                 volumes=volumes,
-                gpus=opts.get("gpus", True),
+                gpus=opts.get("gpus", False),
             )
         except Exception as exc:  # noqa: BLE001
             self.status = ProviderStatus.ERROR
