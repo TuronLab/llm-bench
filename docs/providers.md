@@ -193,8 +193,7 @@ output throughput, marked with an asterisk in the UI. This feature requires an
 OpenAI-compatible `/v1/chat/completions` streaming endpoint; the local
 Hugging Face provider is not supported.
 
-`Output total` is the aggregate throughput of the complete burst. `Output/user`
-is the mean perceived speed of an individual response, measured from its first
-token until its final token. It is therefore closer to the speed experienced by
-each user and is not calculated by simply dividing aggregate throughput by the
-number of users.
+`Aggregate tok/s` is the total serving capacity across the concurrent request
+batch. `Decode tok/s` is the mean generation speed of an
+individual response, measured from its first token until its final token. It is
+not calculated by simply dividing aggregate throughput by the number of users.

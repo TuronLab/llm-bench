@@ -10,8 +10,8 @@ function MetricHelp() {
     <dl>
       <dt>TTFT p50</dt><dd>Median time until the first token is received. It represents the typical response start time.</dd>
       <dt>Latency p95</dt><dd>Total time until the response is complete at the 95th percentile. It helps identify slow requests under load.</dd>
-      <dt>Output total</dt><dd>Aggregate output tokens per second across all requests at that concurrency level. It measures total server capacity.</dd>
-      <dt>Output/user</dt><dd>Mean tokens per second for each individual response, measured from its first token to its last. It represents the speed perceived by each user.</dd>
+      <dt>Aggregate tok/s</dt><dd>Output tokens per second across all requests at that concurrency level. It measures the total serving capacity of the server.</dd>
+      <dt>Decode tok/s</dt><dd>Mean tokens per second for each individual response, measured from its first token to its last. It represents generation speed after the response starts.</dd>
       <dt>Errors</dt><dd>Failed requests relative to the total, displayed as failed/total.</dd>
       <dt>users</dt><dd>Number of requests kept active simultaneously at that load level.</dd>
     </dl>
@@ -80,7 +80,7 @@ export default function Scalability() {
         <table className="scalability-table">
           <thead>
             <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("provider")}>Provider {indicator("provider")}</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
-            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Output total {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Output/user {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
+            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Aggregate tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Decode tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
             {groupedRows.map((row) => {
