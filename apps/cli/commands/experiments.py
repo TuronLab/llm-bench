@@ -110,6 +110,16 @@ def run(
 
 
 def _watch_experiment(experiment_id: str) -> None:
+    started_at = time.monotonic()
+    last_preparation_notice = -15.0
+    previous_statuses: dict[str, str] = {}
+    console.print(
+        "[dim]Preparing the provider and configured models. This can take several "
+        "minutes on the first run while images or models download.[/dim]"
+    )
+    console.print(
+        "[dim]Detailed backend logs: docker compose logs -f --timestamps backend[/dim]"
+    )
     with Progress(
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
@@ -123,6 +133,25 @@ def _watch_experiment(experiment_id: str) -> None:
             total = len(jobs) or 1
             done = sum(1 for j in jobs if j["status"] in ("completed", "failed", "cancelled"))
             progress.update(task_id, total=total, completed=done)
+
+            pending = sum(1 for j in jobs if j["status"] == "pending")
+            elapsed = int(time.monotonic() - started_at)
+            if pending == total and elapsed - last_preparation_notice >= 15:
+                console.print(
+                    "[dim]Still preparing provider/models "
+                    f"({elapsed}s elapsed; {pending}/{total} jobs pending).[/dim]"
+                )
+                last_preparation_notice = elapsed
+
+            for job in jobs:
+                old_status = previous_statuses.get(job["id"])
+                new_status = job["status"]
+                if old_status is not None and old_status != new_status:
+                    console.print(
+                        f"[cyan]{job['model']}[/cyan] / {job['benchmark']}: "
+                        f"[bold]{new_status}[/bold]"
+                    )
+                previous_statuses[job["id"]] = new_status
             if record["status"] in ("completed", "failed", "cancelled"):
                 break
             time.sleep(3)
