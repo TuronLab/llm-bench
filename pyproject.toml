@@ -1,6 +1,6 @@
 [project]
 name = "llm-benchmarking-framework"
-version = "1.0.0"
+version = "0.0.1"
 description = "Docker-native framework for benchmarking LLMs across multiple inference providers using lm-evaluation-harness."
 requires-python = ">=3.11"
 authors = [{ name = "Pablo Turón" }]
