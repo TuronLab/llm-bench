@@ -1,0 +1,23 @@
+name: smoke-llamacpp
+description: "Minimal llama.cpp provider smoke test."
+
+provider:
+  type: llamacpp
+  options:
+    model_path: /Users/pabloturon/Documents/Proyectos/llm-bench/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+    port: 8081
+    gpus: false
+
+models:
+  - /Users/pabloturon/Documents/Proyectos/llm-bench/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+
+benchmarks:
+  - gsm8k
+
+execution:
+  mode: sequential
+  workers: 1
+
+extra_harness_args:
+  limit: 1
+  apply_chat_template: true

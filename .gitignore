@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 *.egg-info/
+models
 
 # Node / frontend
 node_modules/

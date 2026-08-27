@@ -71,6 +71,7 @@ class DockerContainerRuntime:
         ports: Optional[dict[str, int]] = None,
         volumes: Optional[dict[str, dict[str, str]]] = None,
         gpus: bool = False,
+        shm_size: Optional[str | int] = None,
         network: Optional[str] = None,
         extra_labels: Optional[dict[str, str]] = None,
     ) -> str:
@@ -99,6 +100,7 @@ class DockerContainerRuntime:
                 ports=ports or {},
                 volumes=volumes or {},
                 device_requests=device_requests,
+                shm_size=shm_size,
                 network=network or DEFAULT_NETWORK,
                 detach=True,
                 labels=labels,

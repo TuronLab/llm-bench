@@ -5,6 +5,7 @@
 type: llamacpp
 options:
   model_path: /path/on/host/to/model.Q4_K_M.gguf
+  image: ghcr.io/ggml-org/llama.cpp:server
   port: 8080
   context_length: 4096
   gpu_layers: 0    # set > 0 to offload layers to GPU

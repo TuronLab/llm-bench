@@ -15,7 +15,7 @@ from infrastructure.providers.docker_runtime import DockerContainerRuntime
 
 logger = logging.getLogger("benchlab.providers.llamacpp")
 
-DEFAULT_IMAGE = "ghcr.io/ggerganov/llama.cpp:server"
+DEFAULT_IMAGE = "ghcr.io/ggml-org/llama.cpp:server"
 DEFAULT_PORT = 8080
 
 

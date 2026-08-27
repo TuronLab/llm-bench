@@ -1,0 +1,26 @@
+name: smoke-vllm
+description: "Minimal vLLM provider smoke test."
+
+provider:
+  type: vllm
+  options:
+    model: Qwen/Qwen2.5-0.5B-Instruct
+    port: 8001
+    gpus: false
+    target_device: cpu
+    dtype: float32
+    gpu_memory_utilization: 0.5
+
+models:
+  - Qwen/Qwen2.5-0.5B-Instruct
+
+benchmarks:
+  - gsm8k
+
+execution:
+  mode: sequential
+  workers: 1
+
+extra_harness_args:
+  limit: 1
+  apply_chat_template: true

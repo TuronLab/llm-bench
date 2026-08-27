@@ -42,6 +42,7 @@ class VLLMProvider(Provider):
         self._model = opts["model"]
         self._port = int(opts.get("port", DEFAULT_PORT))
         self._image = opts.get("image", DEFAULT_IMAGE)
+        self._shm_size = opts.get("shm_size", "1g")
 
     def start(self) -> None:
         self.status = ProviderStatus.STARTING
@@ -57,6 +58,12 @@ class VLLMProvider(Provider):
         cmd.extend(opts.get("extra_args", []))
 
         env = {}
+        # vLLM cannot reliably infer the backend in CPU-only containers (in
+        # particular on Docker Desktop/Apple Silicon). Make it explicit while
+        # still allowing advanced users to override the target device.
+        target_device = opts.get("target_device")
+        if target_device or not opts.get("gpus", True):
+            env["VLLM_TARGET_DEVICE"] = str(target_device or "cpu")
         if opts.get("hf_token"):
             env["HUGGING_FACE_HUB_TOKEN"] = opts["hf_token"]
 
@@ -73,6 +80,7 @@ class VLLMProvider(Provider):
                 ports={f"{self._port}/tcp": self._port},
                 volumes=volumes,
                 gpus=opts.get("gpus", True),
+                shm_size=self._shm_size,
             )
         except Exception as exc:  # noqa: BLE001
             self.status = ProviderStatus.ERROR

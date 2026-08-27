@@ -1,8 +1,8 @@
-# Quickstart example: benchmark two small Ollama models on two fast tasks.
+# Quickstart example: benchmark two small Ollama models on two generation tasks.
 # Run with:
 #   docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 name: quickstart-ollama
-description: "Minimal example benchmarking small models on a couple of quick tasks."
+description: "Minimal example benchmarking small Ollama models on two quick generation tasks."
 
 provider:
   type: ollama
@@ -18,12 +18,15 @@ models:
   - qwen2.5:0.5b
 
 benchmarks:
-  - arc_easy
-  - boolq
+  # Chat-completion endpoints do not provide token log-likelihoods, so use
+  # generation tasks rather than multiple-choice tasks such as arc_easy.
+  - gsm8k
+  - truthfulqa_gen
 
 execution:
   mode: sequential
   workers: 1
 
 extra_harness_args:
-  limit: 50   # small sample for a fast smoke test; remove for full runs
+  limit: 50                 # small sample for a fast smoke test; remove for full runs
+  apply_chat_template: true # required by lm-eval for OpenAI-compatible chat endpoints

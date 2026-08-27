@@ -14,6 +14,9 @@ options:
   gpu_memory_utilization: 0.9
   dtype: auto
   gpus: true
+  shm_size: 1g
+  # Set to cpu for CPU-only Docker/Apple Silicon environments. If omitted,
+  # it follows gpus (cpu when gpus is false).
   # hf_token: "<your-huggingface-token>"        # only needed for gated models
   # host_models_dir: /path/on/host/to/hf-cache  # persist downloads across runs
   extra_args: []                                 # additional raw vllm serve flags
