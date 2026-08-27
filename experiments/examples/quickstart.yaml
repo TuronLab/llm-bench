@@ -29,4 +29,6 @@ execution:
 
 extra_harness_args:
   limit: 50                 # small sample for a fast smoke test; remove for full runs
-  apply_chat_template: true # required by lm-eval for OpenAI-compatible chat endpoints
+  # Format prompts with the model's chat template. Recommended for chat/instruction
+  # models; not required solely because the endpoint is OpenAI-compatible.
+  apply_chat_template: true

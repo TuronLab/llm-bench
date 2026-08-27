@@ -138,6 +138,13 @@ omits it; this means negated flags are not represented automatically. The
 framework always supplies its own `--model`, `--model_args`, `--tasks`,
 `--output_path`, and `--log_samples` values, so do not repeat those keys here.
 
+`apply_chat_template: true` tells `lm-evaluation-harness` to format prompts
+using the model's chat template. It is useful for chat or instruction-tuned
+models when the task should be evaluated as a conversation. It is not required
+merely because the provider exposes an OpenAI-compatible chat endpoint. Use it
+only when the model has a suitable chat template and the serving stack supports
+the resulting format; otherwise, leave it unset or set it to `false`.
+
 Typical examples:
 
 ```yaml
@@ -145,7 +152,7 @@ extra_harness_args:
   limit: 50             # smoke test: evaluate only 50 examples
   num_fewshot: 5       # number of demonstrations (when the task supports it)
   batch_size: 1        # requests per inference batch; lower it if memory is tight
-  apply_chat_template: true  # useful for chat/instruction Hugging Face models
+  apply_chat_template: true  # use the model's chat template for chat/instruction models
 ```
 
 For a normal final comparison, remove `limit` (or use the same value for every
