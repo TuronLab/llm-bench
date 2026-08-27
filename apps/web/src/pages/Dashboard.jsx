@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [showProviders, setShowProviders] = useState(false);
+  const [sort, setSort] = useState({ key: "model", direction: "asc" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,40 @@ export default function Dashboard() {
   const filteredModels = models.filter((m) =>
     m.toLowerCase().includes(search.toLowerCase())
   );
+
+  const toggleSort = (key) => {
+    setSort((current) => ({
+      key,
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const sortValue = (model, key) => {
+    if (key === "model") return model;
+    if (key === "provider") {
+      return benchmarks.flatMap((benchmark) => matrix[model]?.[benchmark]?.providers || [])
+        .map((provider) => provider.provider)
+        .sort()[0] || "";
+    }
+    const cell = matrix[model]?.[key];
+    return showProviders
+      ? cell?.providers?.[0]?.value ?? null
+      : cell?.value ?? null;
+  };
+
+  const sortedModels = [...filteredModels].sort((a, b) => {
+    const left = sortValue(a, sort.key);
+    const right = sortValue(b, sort.key);
+    if (left === right) return 0;
+    if (left === null || left === undefined || left === "") return 1;
+    if (right === null || right === undefined || right === "") return -1;
+    const comparison = typeof left === "number" && typeof right === "number"
+      ? left - right
+      : String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: "base" });
+    return sort.direction === "asc" ? comparison : -comparison;
+  });
+
+  const sortIndicator = (key) => sort.key !== key ? "" : sort.direction === "asc" ? "▲" : "▼";
 
   if (models.length === 0) {
     return (
@@ -59,15 +94,15 @@ export default function Dashboard() {
         <table>
           <thead>
             <tr>
-              <th>Model</th>
-              {showProviders && <th>Provider</th>}
+              <th className="sortable-header" onClick={() => toggleSort("model")}>Model {sortIndicator("model")}</th>
+              {showProviders && <th className="sortable-header" onClick={() => toggleSort("provider")}>Provider {sortIndicator("provider")}</th>}
               {benchmarks.map((b) => (
-                <th key={b}>{b}</th>
+                <th key={b} className="sortable-header" onClick={() => toggleSort(b)}>{b} {sortIndicator(b)}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filteredModels.flatMap((model) => {
+            {sortedModels.flatMap((model) => {
               const providerRows = showProviders
                 ? Math.max(1, ...benchmarks.map((bench) => matrix[model]?.[bench]?.providers?.length || 0))
                 : 1;

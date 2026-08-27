@@ -78,6 +78,8 @@ th, td {
 }
 
 th { color: var(--muted); font-weight: 600; }
+th.sortable-header { cursor: pointer; user-select: none; }
+th.sortable-header:hover { color: var(--text); }
 
 td.score-cell { cursor: pointer; color: var(--accent); }
 td.score-cell:hover { text-decoration: underline; }
