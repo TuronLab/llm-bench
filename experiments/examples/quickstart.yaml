@@ -1,0 +1,29 @@
+# Quickstart example: benchmark two small Ollama models on two fast tasks.
+# Run with:
+#   docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
+name: quickstart-ollama
+description: "Minimal example benchmarking small models on a couple of quick tasks."
+
+provider:
+  type: ollama
+  options:
+    manage: true
+    gpus: false
+    pull_models:
+      - llama3.2:1b
+      - qwen2.5:0.5b
+
+models:
+  - llama3.2:1b
+  - qwen2.5:0.5b
+
+benchmarks:
+  - arc_easy
+  - boolq
+
+execution:
+  mode: sequential
+  workers: 1
+
+extra_harness_args:
+  limit: 50   # small sample for a fast smoke test; remove for full runs

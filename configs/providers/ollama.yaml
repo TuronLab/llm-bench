@@ -1,0 +1,18 @@
+# Configuration template for the "ollama" provider.
+# Ollama can serve several models from a single running instance, so the
+# framework starts it once and reuses it across every model in the
+# experiment (no per-model restarts, unlike vLLM/llama.cpp).
+
+type: ollama
+options:
+  manage: true          # true: launch/stop a container. false: connect to an existing server.
+  host: localhost        # only relevant when manage is false
+  port: 11434
+  gpus: true
+  # models_volume: /path/on/host/to/ollama-models  # persist pulled models across runs
+  pull_models:            # models to `ollama pull` right after the server starts
+    - llama3
+    - mistral
+    - qwen2.5
+supports_concurrency: false
+keep_alive: false

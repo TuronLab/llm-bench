@@ -1,0 +1,13 @@
+# Configuration template for the "openai_compatible" provider.
+# Use this for any remote (or externally-run local) service exposing the
+# OpenAI /v1/chat/completions contract: the real OpenAI API, Azure OpenAI,
+# Together AI, Groq, a self-hosted proxy, etc. Nothing is started or
+# stopped by the framework for this provider type.
+
+type: openai_compatible
+options:
+  endpoint: https://api.openai.com/v1
+  api_key: "${OPENAI_API_KEY}"   # resolve from your shell/CI secret store
+  model: gpt-4o-mini
+supports_concurrency: true   # remote APIs usually tolerate concurrent requests
+keep_alive: true             # nothing to tear down

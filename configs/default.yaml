@@ -1,0 +1,24 @@
+# Default global configuration for the LLM Benchmarking Framework.
+# Values here are overridden by environment variables of the form
+# BENCHLAB_<KEY> where applicable (see storage/paths.py and backend/app/core/config.py).
+
+storage:
+  experiments_dir: experiments
+  results_dir: results
+  logs_dir: logs
+
+execution:
+  default_mode: sequential
+  default_workers: 2
+  provider_ready_timeout_seconds: 300
+  provider_ready_poll_interval_seconds: 2
+
+harness:
+  # Extra flags appended to every `lm_eval` invocation unless overridden at
+  # the experiment level via `extra_harness_args`.
+  default_args:
+    num_fewshot: null   # let each task's default apply unless overridden
+    batch_size: auto
+
+logging:
+  level: INFO

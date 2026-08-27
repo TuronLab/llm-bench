@@ -1,0 +1,19 @@
+[project]
+name = "llm-benchmarking-framework"
+version = "1.0.0"
+description = "Docker-native framework for benchmarking LLMs across multiple inference providers using lm-evaluation-harness."
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.black]
+line-length = 110
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

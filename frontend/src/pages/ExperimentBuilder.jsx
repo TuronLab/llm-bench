@@ -1,0 +1,238 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/client.js";
+
+const STEPS = ["Provider", "Models", "Benchmarks", "Execution", "Review"];
+
+export default function ExperimentBuilder() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const [providersData, setProvidersData] = useState(null);
+  const [benchmarksList, setBenchmarksList] = useState([]);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [name, setName] = useState("");
+  const [providerType, setProviderType] = useState("");
+  const [providerOptions, setProviderOptions] = useState({});
+  const [modelInput, setModelInput] = useState("");
+  const [models, setModels] = useState([]);
+  const [benchmarkFilter, setBenchmarkFilter] = useState("");
+  const [selectedBenchmarks, setSelectedBenchmarks] = useState([]);
+  const [mode, setMode] = useState("sequential");
+  const [workers, setWorkers] = useState(2);
+
+  useEffect(() => {
+    api.listProviders().then((d) => {
+      setProvidersData(d);
+      setProviderType(d.types[0]);
+    }).catch((e) => setError(e.message));
+    api.listBenchmarks().then((d) => setBenchmarksList(d.benchmarks)).catch((e) => setError(e.message));
+  }, []);
+
+  if (!providersData) return <div className="panel">{error || "Loading..."}</div>;
+
+  const fields = providersData.schemas[providerType] || [];
+
+  const updateOption = (key, value) => setProviderOptions((prev) => ({ ...prev, [key]: value }));
+
+  const addModel = () => {
+    if (modelInput.trim() && !models.includes(modelInput.trim())) {
+      setModels([...models, modelInput.trim()]);
+      setModelInput("");
+    }
+  };
+  const removeModel = (m) => setModels(models.filter((x) => x !== m));
+
+  const toggleBenchmark = (b) => {
+    setSelectedBenchmarks((prev) =>
+      prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]
+    );
+  };
+
+  const visibleBenchmarks = benchmarksList
+    .filter((b) => b.toLowerCase().includes(benchmarkFilter.toLowerCase()))
+    .slice(0, 60);
+
+  const canProceed = () => {
+    if (step === 0) return Boolean(name.trim()) && Boolean(providerType);
+    if (step === 1) return models.length > 0;
+    if (step === 2) return selectedBenchmarks.length > 0;
+    return true;
+  };
+
+  const submit = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const definition = {
+        name,
+        provider: { type: providerType, options: providerOptions },
+        models,
+        benchmarks: selectedBenchmarks,
+        execution: { mode, workers: mode === "parallel" ? Number(workers) : 1 },
+      };
+      const record = await api.createExperiment(definition);
+      await api.runExperiment(record.id);
+      navigate(`/monitoring/${record.id}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div>
+      <h1>New Experiment</h1>
+      <p className="subtitle">Create an experiment without touching a YAML file.</p>
+
+      <div className="wizard-steps">
+        {STEPS.map((label, i) => (
+          <div key={label} className={`wizard-step ${i === step ? "active" : i < step ? "done" : ""}`}>
+            {i + 1}. {label}
+          </div>
+        ))}
+      </div>
+
+      <div className="panel">
+        {step === 0 && (
+          <div>
+            <label>Experiment name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. llama3-vs-mistral" />
+
+            <label>Provider</label>
+            <select value={providerType} onChange={(e) => { setProviderType(e.target.value); setProviderOptions({}); }}>
+              {providersData.types.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+
+            {fields.map((field) => (
+              <div key={field.key}>
+                <label>{field.label}{field.required ? " *" : ""}</label>
+                {field.type === "boolean" ? (
+                  <select
+                    value={String(providerOptions[field.key] ?? field.default ?? false)}
+                    onChange={(e) => updateOption(field.key, e.target.value === "true")}
+                  >
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                  </select>
+                ) : (
+                  <input
+                    type={field.type === "secret" ? "password" : field.type === "number" || field.type === "integer" ? "number" : "text"}
+                    value={providerOptions[field.key] ?? field.default ?? ""}
+                    onChange={(e) => updateOption(field.key, e.target.value)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {step === 1 && (
+          <div>
+            <label>Add model (id, path, or tag depending on provider)</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                value={modelInput}
+                onChange={(e) => setModelInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addModel()}
+                placeholder="e.g. llama3:8b"
+              />
+              <button type="button" onClick={addModel}>Add</button>
+            </div>
+            <div className="chip-list">
+              {models.map((m) => (
+                <span key={m} className="chip">
+                  {m} <button type="button" onClick={() => removeModel(m)}>&times;</button>
+                </span>
+              ))}
+              {models.length === 0 && <span className="empty-cell">No models added yet.</span>}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <label>Search benchmarks</label>
+            <input value={benchmarkFilter} onChange={(e) => setBenchmarkFilter(e.target.value)} placeholder="e.g. mmlu" />
+            <div className="chip-list">
+              {visibleBenchmarks.map((b) => (
+                <span
+                  key={b}
+                  className="chip"
+                  style={{
+                    cursor: "pointer",
+                    borderColor: selectedBenchmarks.includes(b) ? "var(--accent)" : undefined,
+                  }}
+                  onClick={() => toggleBenchmark(b)}
+                >
+                  {selectedBenchmarks.includes(b) ? "✓ " : ""}{b}
+                </span>
+              ))}
+            </div>
+            <label style={{ marginTop: 20 }}>Selected ({selectedBenchmarks.length})</label>
+            <div className="chip-list">
+              {selectedBenchmarks.map((b) => (
+                <span key={b} className="chip">
+                  {b} <button type="button" onClick={() => toggleBenchmark(b)}>&times;</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div>
+            <label>Execution mode</label>
+            <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="sequential">Sequential</option>
+              <option value="parallel">Parallel</option>
+            </select>
+            {mode === "parallel" && (
+              <div>
+                <label>Worker count</label>
+                <input type="number" min={1} value={workers} onChange={(e) => setWorkers(e.target.value)} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 4 && (
+          <div>
+            <h2 style={{ marginTop: 0 }}>Review</h2>
+            <table>
+              <tbody>
+                <tr><th>Name</th><td>{name}</td></tr>
+                <tr><th>Provider</th><td>{providerType}</td></tr>
+                <tr><th>Models</th><td>{models.join(", ")}</td></tr>
+                <tr><th>Benchmarks</th><td>{selectedBenchmarks.join(", ")}</td></tr>
+                <tr><th>Execution</th><td>{mode}{mode === "parallel" ? ` (${workers} workers)` : ""}</td></tr>
+                <tr><th>Total jobs</th><td>{models.length * selectedBenchmarks.length}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {error && <div className="error-text">{error}</div>}
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+          <button type="button" className="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}>
+            Back
+          </button>
+          {step < STEPS.length - 1 ? (
+            <button type="button" disabled={!canProceed()} onClick={() => setStep(step + 1)}>
+              Next
+            </button>
+          ) : (
+            <button type="button" disabled={submitting} onClick={submit}>
+              {submitting ? "Launching..." : "Launch Experiment"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,14 @@
+# Configuration template for the "llamacpp" provider.
+# Like vLLM, llama-server serves exactly one GGUF model per instance, so the
+# framework restarts it once per model when an experiment lists several.
+
+type: llamacpp
+options:
+  model_path: /path/on/host/to/model.Q4_K_M.gguf
+  port: 8080
+  context_length: 4096
+  gpu_layers: 0    # set > 0 to offload layers to GPU
+  # threads: 8
+  extra_args: []
+supports_concurrency: false
+keep_alive: false

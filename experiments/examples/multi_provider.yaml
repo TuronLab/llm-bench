@@ -1,0 +1,36 @@
+# Example: a parallel, multi-model vLLM experiment across several standard
+# academic benchmarks. Since vLLM serves one model per instance, the
+# framework automatically cycles the container across `models`; within each
+# model's benchmarks, up to `workers` run concurrently against that
+# instance is NOT what happens here because vLLM does not declare
+# supports_concurrency -- benchmarks for a given model still serialize
+# safely against its single running instance while still executing overall
+# faster than a fully sequential experiment thanks to job-level parallel
+# scheduling across models that ARE ready to run.
+name: multi-benchmark-vllm
+description: "Full suite benchmarking of a 7B model on standard academic tasks."
+
+provider:
+  type: vllm
+  options:
+    tensor_parallel_size: 1
+    gpu_memory_utilization: 0.9
+    dtype: auto
+
+models:
+  - mistralai/Mistral-7B-Instruct-v0.3
+
+benchmarks:
+  - mmlu
+  - gsm8k
+  - truthfulqa_mc2
+  - arc_challenge
+  - hellaswag
+  - winogrande
+
+execution:
+  mode: parallel
+  workers: 2
+
+extra_harness_args:
+  num_fewshot: 5

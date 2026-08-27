@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Persistent data (kept as directories via .gitkeep, contents ignored)
+experiments/*.json
+experiments/.state/
+results/*.json
+logs/*
+
+!experiments/examples/
+!experiments/.gitkeep
+!results/.gitkeep
+!logs/.gitkeep
+
+# Environment
+.env
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,21 @@
+# Configuration template for the "vllm" provider.
+# Copy into an experiment's `provider.options` block, or use as a reference
+# for the web UI's dynamic form / `bench experiment create` wizard.
+#
+# vLLM serves exactly one model per running instance. When an experiment
+# lists multiple `models`, the framework automatically restarts the vLLM
+# container once per model, substituting each into `model` below.
+
+type: vllm
+options:
+  model: meta-llama/Meta-Llama-3-8B-Instruct   # HF model id or local path
+  port: 8000
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.9
+  dtype: auto
+  gpus: true
+  # hf_token: "<your-huggingface-token>"        # only needed for gated models
+  # host_models_dir: /path/on/host/to/hf-cache  # persist downloads across runs
+  extra_args: []                                 # additional raw vllm serve flags
+supports_concurrency: false   # a single vLLM instance should not be double-booked
+keep_alive: false
