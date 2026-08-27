@@ -16,23 +16,23 @@ It is designed for comparisons that public leaderboards do not always cover: spe
 
 ## Quick start
 
-To use `llm-bench`, start `backend`, which runs the evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
+To use `llm-bench`, start `backend`, which runs evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
 
 ```bash
-docker compose build
-docker compose up -d backend frontend
+docker compose up -d --build backend frontend
+docker compose run --build --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
-With the API running, use either the native CLI or its Docker container:
+This starts the API and dashboard, downloads the two small Ollama models in the example, and runs a short comparison.
+
+## Native CLI
+
+With the API running, install and use the CLI from the repository root:
 
 ```bash
-# Native CLI, installed from the repository root.
 uv tool install .
 export BENCHLAB_API_URL=http://localhost:8000/api/v1
 llm-bench experiment run experiments/examples/quickstart.yaml
-
-# Docker CLI.
-docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
 The native CLI only needs an accessible API service. Managed vLLM, Ollama, and llama.cpp providers still require Docker; use `openai_compatible` or Ollama with `manage: false` for an external setup.

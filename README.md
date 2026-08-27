@@ -8,18 +8,18 @@ The project is intended for controlled comparisons that public leaderboards do n
 
 ## Quick start
 
-To use `llm-bench`, start these two services: `backend` runs the evaluations—it starts the model server you select, sends it benchmark questions, and saves the results—while `frontend` provides a browser dashboard for creating comparisons, tracking progress, and reviewing scores.
+To use `llm-bench`, start `backend`, which runs evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
 
 Prerequisites: Docker Engine 24+ and Docker Compose v2. GPU-backed providers also need the NVIDIA Container Toolkit.
 
 ```bash
-docker compose build
-docker compose up -d backend frontend
+docker compose up -d --build backend frontend
+docker compose run --build --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
-The dashboard is at `http://localhost:3000`; the API is at `http://localhost:8000`.
+This starts the API and dashboard, downloads the two small Ollama models in the example, and runs a short comparison. Open the dashboard at `http://localhost:3000`.
 
-With the API running, execute the example with `llm-bench experiment run experiments/examples/quickstart.yaml` natively or `docker compose run --rm cli experiment run experiments/examples/quickstart.yaml` in Docker. See next section for more details.
+You can run the same experiment with the native `llm-bench` command after installing it; see the next section.
 
 The quickstart evaluates two small models on a limited sample. For a real comparison, copy the template and give both candidates the same benchmark list and harness options:
 
