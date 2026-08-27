@@ -321,10 +321,14 @@ def _stop_provider_if_needed(provider: Provider, provider_config: ProviderConfig
 
 
 def _start_provider(provider: Provider) -> None:
+    logger.info("Starting provider '%s'", provider.config.name)
     provider.start()
+    logger.info("Provider '%s' started; waiting for readiness", provider.config.name)
     provider.wait_until_ready()
+    logger.info("Provider '%s' is ready", provider.config.name)
     pull_configured_models = getattr(provider, "pull_configured_models", None)
     if callable(pull_configured_models):
+        logger.info("Ensuring configured provider models are available")
         pull_configured_models()
 
 

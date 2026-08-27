@@ -32,10 +32,10 @@ logger = logging.getLogger("benchlab.providers.docker")
 
 try:
     import docker
-    from docker.errors import APIError, NotFound
+    from docker.errors import APIError, ImageNotFound, NotFound
 except ImportError:  # pragma: no cover - docker SDK is an optional runtime dep
     docker = None
-    APIError = NotFound = Exception
+    APIError = ImageNotFound = NotFound = Exception
 
 DEFAULT_NETWORK = os.environ.get("BENCHLAB_DOCKER_NETWORK", "benchlab-network")
 
@@ -84,6 +84,13 @@ class DockerContainerRuntime:
         labels = {self.LABEL_KEY: "true", "benchlab.provider": name}
         labels.update(extra_labels or {})
         try:
+            try:
+                self._client.images.get(image)
+                logger.info("Docker image %s already available", image)
+            except ImageNotFound:
+                logger.info("Docker image %s not found; downloading it now", image)
+                self._client.images.pull(image)
+                logger.info("Finished downloading Docker image %s", image)
             container = self._client.containers.run(
                 image,
                 command=command,
@@ -97,7 +104,9 @@ class DockerContainerRuntime:
                 labels=labels,
             )
         except APIError as exc:
-            raise DockerRuntimeError(f"Failed to start container '{name}': {exc}") from exc
+            raise DockerRuntimeError(
+                f"Failed to prepare image or start container '{name}': {exc}"
+            ) from exc
         logger.info("Started container %s (%s) from image %s on network %s",
                     name, container.id[:12], image, network or DEFAULT_NETWORK)
         return container.id

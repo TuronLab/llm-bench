@@ -100,6 +100,53 @@ backend running in Docker cannot access Apple's Metal GPU, so use `cpu` there.
 
 ## Execution settings
 
-Use `sequential` by default. In `parallel` mode, `workers` limits job concurrency, but local providers remain serialized unless you explicitly set `supports_concurrency: true`. Set that flag only for an endpoint that can safely handle concurrent requests.
+`execution` controls how the jobs created from the model/benchmark matrix are scheduled:
 
-`extra_harness_args` are passed through to `lm_eval`; common examples are `num_fewshot`, `batch_size`, and `limit`.
+```yaml
+execution:
+  mode: sequential   # sequential (default) or parallel
+  workers: 1         # maximum number of jobs in parallel mode
+```
+
+If there are two models and two benchmarks, the experiment creates four jobs. With
+`sequential`, they run one after another. With `parallel`, at most `workers` jobs
+can be submitted at once. The provider still acts as a concurrency gate:
+providers are serialized unless `provider.supports_concurrency: true` is set.
+Only enable that flag for a server that can safely handle simultaneous requests;
+it is normally false for local Ollama, vLLM, and llama.cpp instances. `workers`
+must be at least 1 and has no effect in sequential mode.
+
+`keep_alive` and `supports_concurrency` belong under `provider`, not under
+`execution`. `keep_alive: true` leaves a managed provider running after the
+experiment; it does not change the number of jobs running concurrently.
+
+## `extra_harness_args`
+
+`extra_harness_args` is an escape hatch for options belonging to
+[`lm-evaluation-harness`](https://github.com/EleutherAI/lm-evaluation-harness),
+not to this framework. The project currently pins `lm-eval==0.4.5`; the
+authoritative options for that installed version are shown by `lm_eval --help`
+and in the harness' [`simple_evaluate`/CLI argument definitions](https://github.com/EleutherAI/lm-evaluation-harness/tree/v0.4.5/lm_eval). The
+available benchmark names are separate: use `benchmarks list` as described in
+the [benchmark documentation](../benchmarks/).
+
+Keys in this mapping become `lm_eval` flags by prefixing them with `--`.
+Values are passed as strings. Boolean `true` adds the flag and boolean `false`
+omits it; this means negated flags are not represented automatically. The
+framework always supplies its own `--model`, `--model_args`, `--tasks`,
+`--output_path`, and `--log_samples` values, so do not repeat those keys here.
+
+Typical examples:
+
+```yaml
+extra_harness_args:
+  limit: 50             # smoke test: evaluate only 50 examples
+  num_fewshot: 5       # number of demonstrations (when the task supports it)
+  batch_size: 1        # requests per inference batch; lower it if memory is tight
+  apply_chat_template: true  # useful for chat/instruction Hugging Face models
+```
+
+For a normal final comparison, remove `limit` (or use the same value for every
+candidate). Other harness options such as `seed`, `gen_kwargs`, `include_path`,
+and `trust_remote_code` may be useful depending on the task and provider, but
+must be checked against the installed harness version and task requirements.
