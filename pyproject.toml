@@ -9,7 +9,12 @@ dependencies = [
     "httpx==0.27.2",
     "pydantic==2.9.2",
     "pyyaml==6.0.2",
+    "rich==13.8.1",
+    "typer==0.12.5",
 ]
+
+[project.scripts]
+llm-bench = "apps.cli.main:app"
 
 [dependency-groups]
 api = [
@@ -18,13 +23,16 @@ api = [
     "lm-eval==0.4.5",
     "uvicorn[standard]==0.30.6",
 ]
-cli = [
-    "rich==13.8.1",
-    "typer==0.12.5",
-]
 dev = [
     "pytest==8.3.3",
 ]
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps", "core", "infrastructure"]
 
 [tool.ruff]
 line-length = 110

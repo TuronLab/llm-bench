@@ -13,12 +13,11 @@ Prerequisites: Docker Engine 24+ and Docker Compose v2. GPU-backed providers als
 ```bash
 docker compose build
 docker compose up -d backend frontend
-
-# Run the small, CPU-friendly Ollama example.
-docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
 The dashboard is at `http://localhost:3000`; the API is at `http://localhost:8000`.
+
+With the API running, execute the example with `llm-bench experiment run experiments/examples/quickstart.yaml` natively or `docker compose run --rm cli experiment run experiments/examples/quickstart.yaml` in Docker. See next section for more details.
 
 The quickstart evaluates two small models on a limited sample. For a real comparison, copy the template and give both candidates the same benchmark list and harness options:
 
@@ -29,6 +28,33 @@ docker compose run --rm cli experiment run experiments/my-comparison.yaml
 ```
 
 Use the dashboard's **New Experiment** screen instead if you prefer not to edit YAML.
+
+## CLI installation and use
+
+The CLI is a client of the API service: it creates experiments and displays status, results, and logs.
+
+### Native terminal
+
+Install the native command from the repository root:
+
+```bash
+uv tool install .
+export BENCHLAB_API_URL=http://localhost:8000/api/v1
+llm-bench experiment run experiments/examples/quickstart.yaml
+```
+
+Use `uv tool install --editable .` while developing. The API must already be running; for a local API without Compose, run `uv sync --group api` followed by `uv run --group api uvicorn apps.api.app.main:app --reload`.
+
+### Docker Compose
+
+Start the API service and run the same CLI in its container:
+
+```bash
+docker compose up -d backend
+docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
+```
+
+Managed vLLM, Ollama, and llama.cpp providers require Docker. For a fully external setup, use `openai_compatible` or Ollama with `manage: false`.
 
 ## Comparing model variants fairly
 
@@ -96,22 +122,22 @@ tests/                Scheduler and experiment regression tests
 
 ```bash
 # Inspect provider types and harness tasks.
-docker compose run --rm cli providers list
-docker compose run --rm cli benchmarks list
+llm-bench providers list
+llm-bench benchmarks list
 
 # Create, run, inspect, or cancel an experiment.
-docker compose run --rm cli experiment create experiments/my-comparison.yaml
-docker compose run --rm cli experiment run <experiment-id>
-docker compose run --rm cli experiment status <experiment-id>
-docker compose run --rm cli experiment logs <experiment-id> <job-id>
-docker compose run --rm cli experiment cancel <experiment-id>
+llm-bench experiment create experiments/my-comparison.yaml
+llm-bench experiment run <experiment-id>
+llm-bench experiment status <experiment-id>
+llm-bench experiment logs <experiment-id> <job-id>
+llm-bench experiment cancel <experiment-id>
 
 # Inspect persisted results.
-docker compose run --rm cli results list
-docker compose run --rm cli results show <model>
+llm-bench results list
+llm-bench results show <model>
 ```
 
-The CLI is a REST client: it expects the `backend` Compose service to be running. The web interface offers the same core workflow. Interactive API documentation is at `http://localhost:8000/docs`.
+The CLI is a REST client: it expects an API service at `BENCHLAB_API_URL` (default: `http://localhost:8000/api/v1`). The web interface offers the same core workflow. Interactive API documentation is at `http://localhost:8000/docs`.
 
 ## Data and configuration
 

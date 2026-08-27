@@ -890,11 +890,13 @@ wheels = [
 [[package]]
 name = "llm-benchmarking-framework"
 version = "0.0.1"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "rich" },
+    { name = "typer" },
 ]
 
 [package.dev-dependencies]
@@ -903,10 +905,6 @@ api = [
     { name = "fastapi" },
     { name = "lm-eval" },
     { name = "uvicorn", extra = ["standard"] },
-]
-cli = [
-    { name = "rich" },
-    { name = "typer" },
 ]
 dev = [
     { name = "pytest" },
@@ -917,6 +915,8 @@ requires-dist = [
     { name = "httpx", specifier = "==0.27.2" },
     { name = "pydantic", specifier = "==2.9.2" },
     { name = "pyyaml", specifier = "==6.0.2" },
+    { name = "rich", specifier = "==13.8.1" },
+    { name = "typer", specifier = "==0.12.5" },
 ]
 
 [package.metadata.requires-dev]
@@ -925,10 +925,6 @@ api = [
     { name = "fastapi", specifier = "==0.115.0" },
     { name = "lm-eval", specifier = "==0.4.5" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.30.6" },
-]
-cli = [
-    { name = "rich", specifier = "==13.8.1" },
-    { name = "typer", specifier = "==0.12.5" },
 ]
 dev = [{ name = "pytest", specifier = "==8.3.3" }]
 

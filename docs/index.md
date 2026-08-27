@@ -22,6 +22,15 @@ docker compose up -d backend frontend
 docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
+After cloning the repository, the CLI can also be installed natively from its root, without a Docker CLI container:
+
+```bash
+uv tool install .
+llm-bench --help
+```
+
+It connects to an already-running API service through `BENCHLAB_API_URL`; see the repository README for native and Docker Compose workflows.
+
 The command-line interface can list the exact benchmarks supported by the installed `lm-evaluation-harness` version:
 
 ```bash
