@@ -21,7 +21,9 @@ llm-bench = "apps.cli.main:app"
 api = [
     "docker==7.1.0",
     "fastapi==0.115.0",
-    "lm-eval==0.4.5",
+    "lm-eval[api]==0.4.5",
+    # lm-eval 0.4.5 imports AutoModelForVision2Seq, removed by Transformers 5.
+    "transformers==4.45.2",
     "torch",
     "uvicorn[standard]==0.30.6",
 ]
