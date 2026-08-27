@@ -29,12 +29,25 @@ class ApiClient:
         return response.json()
 
     def get(self, path: str, params: Optional[dict] = None) -> Any:
-        with httpx.Client(timeout=30.0) as client:
-            return self._handle(client.get(f"{self.base_url}{path}", params=params))
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                return self._handle(client.get(f"{self.base_url}{path}", params=params))
+        except httpx.RequestError as exc:
+            self._raise_connection_error(exc)
 
     def post(self, path: str, json: Optional[dict] = None) -> Any:
-        with httpx.Client(timeout=30.0) as client:
-            return self._handle(client.post(f"{self.base_url}{path}", json=json))
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                return self._handle(client.post(f"{self.base_url}{path}", json=json))
+        except httpx.RequestError as exc:
+            self._raise_connection_error(exc)
+
+    def _raise_connection_error(self, exc: httpx.RequestError) -> None:
+        error_console.print(
+            f"Cannot reach the API at {self.base_url}. "
+            "Start it with `docker compose up -d backend` or set BENCHLAB_API_URL."
+        )
+        raise typer_exit() from exc
 
 
 def typer_exit():
