@@ -8,6 +8,8 @@ The project is intended for controlled comparisons that public leaderboards do n
 
 ## Quick start
 
+To use `llm-bench`, start these two services: `backend` runs the evaluations—it starts the model server you select, sends it benchmark questions, and saves the results—while `frontend` provides a browser dashboard for creating comparisons, tracking progress, and reviewing scores.
+
 Prerequisites: Docker Engine 24+ and Docker Compose v2. GPU-backed providers also need the NVIDIA Container Toolkit.
 
 ```bash

@@ -5,14 +5,13 @@ permalink: /benchmarks/
 
 # Supported benchmarks
 
-[Home]({{ '/' | relative_url }}) · [Architecture]({{ '/architecture/' | relative_url }}) · [Providers]({{ '/providers/' | relative_url }})
-
 This framework delegates evaluation to [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness), an open-source framework for running LLM benchmarks locally. It does not implement or maintain benchmark logic itself.
 
 The exact task list depends on the version of `lm-evaluation-harness` installed in the backend image, including any custom tasks added to that installation. Use the following command for the authoritative list in a running deployment:
 
 ```bash
-docker compose run --rm cli benchmarks list
+llm-bench benchmarks list
+# Or: docker compose run --rm cli benchmarks list
 ```
 
 <details>

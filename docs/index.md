@@ -16,25 +16,38 @@ It is designed for comparisons that public leaderboards do not always cover: spe
 
 ## Quick start
 
+To use `llm-bench`, start `backend`, which runs the evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
+
 ```bash
 docker compose build
 docker compose up -d backend frontend
+```
+
+With the API running, use either the native CLI or its Docker container:
+
+```bash
+# Native CLI, installed from the repository root.
+uv tool install .
+export BENCHLAB_API_URL=http://localhost:8000/api/v1
+llm-bench experiment run experiments/examples/quickstart.yaml
+
+# Docker CLI.
 docker compose run --rm cli experiment run experiments/examples/quickstart.yaml
 ```
 
-After cloning the repository, the CLI can also be installed natively from its root, without a Docker CLI container:
+The native CLI only needs an accessible API service. Managed vLLM, Ollama, and llama.cpp providers still require Docker; use `openai_compatible` or Ollama with `manage: false` for an external setup.
+
+For development, install the local API group and run it without Compose:
 
 ```bash
-uv tool install .
-llm-bench --help
+uv sync --group api
+uv run --group api uvicorn apps.api.app.main:app --reload
 ```
-
-It connects to an already-running API service through `BENCHLAB_API_URL`; see the repository README for native and Docker Compose workflows.
 
 The command-line interface can list the exact benchmarks supported by the installed `lm-evaluation-harness` version:
 
 ```bash
-docker compose run --rm cli benchmarks list
+llm-bench benchmarks list
 ```
 
 ## Publishing this site

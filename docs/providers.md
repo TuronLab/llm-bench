@@ -5,8 +5,6 @@ permalink: /providers/
 
 # Providers and experiment definitions
 
-[Home]({{ '/' | relative_url }}) · [Architecture]({{ '/architecture/' | relative_url }}) · [Benchmarks]({{ '/benchmarks/' | relative_url }})
-
 An experiment selects one provider, one or more model identifiers, benchmark tasks, and execution settings. Each model-task combination becomes a job.
 
 Start from [`infrastructure/templates/experiment_template.yaml`]({{ site.repository_url }}/blob/main/infrastructure/templates/experiment_template.yaml).
