@@ -134,11 +134,9 @@ Path overrides use `BENCHLAB_EXPERIMENTS_DIR`, `BENCHLAB_RESULTS_DIR`, and `BENC
 ## Development
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r apps/api/requirements.txt
+uv sync --group api
 export BENCHLAB_ROOT=$(pwd)
-uvicorn apps.api.app.main:app --reload
+uv run --group api uvicorn apps.api.app.main:app --reload
 ```
 
 For the web application, run `npm install && npm run dev` from `apps/web/`. Provider containers still require Docker because the API manages them through the Docker socket.

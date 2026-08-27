@@ -8,13 +8,15 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     BENCHLAB_ROOT=/app \
     BENCHLAB_API_URL=http://backend:8000/api/v1 \
-    UV_SYSTEM_PYTHON=1
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
 
-COPY apps/cli/requirements.txt /app/apps/cli/requirements.txt
+COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r /app/apps/cli/requirements.txt
+    uv sync --frozen --no-dev --no-install-project --group cli
 
 COPY apps /app/apps
 COPY infrastructure /app/infrastructure
