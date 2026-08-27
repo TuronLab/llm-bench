@@ -16,6 +16,7 @@
 # Only ./experiments, ./results, and (optionally) ./logs are bind-mounted
 # from the host; everything else (Python packages, model downloads, caches,
 # venvs) lives entirely inside container filesystems and volumes.
+name: llm-bench
 
 services:
   backend:
