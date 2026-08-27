@@ -1,6 +1,13 @@
+---
+title: Architecture and execution model
+permalink: /architecture/
+---
+
 # Architecture and execution model
 
 ## The two meanings of “backend”
+
+[Home]({{ '/' | relative_url }}) · [Providers]({{ '/providers/' | relative_url }}) · [Benchmarks]({{ '/benchmarks/' | relative_url }})
 
 The **application backend** is `apps/api/`: a FastAPI service that exposes the REST API and coordinates experiments. A **provider backend** is the server that generates tokens for a model, such as vLLM or Ollama. Providers are adapters in `infrastructure/providers/`; they are not the web API.
 

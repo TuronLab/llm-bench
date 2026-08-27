@@ -1,8 +1,15 @@
+---
+title: Providers and experiment definitions
+permalink: /providers/
+---
+
 # Providers and experiment definitions
+
+[Home]({{ '/' | relative_url }}) · [Architecture]({{ '/architecture/' | relative_url }}) · [Benchmarks]({{ '/benchmarks/' | relative_url }})
 
 An experiment selects one provider, one or more model identifiers, benchmark tasks, and execution settings. Each model-task combination becomes a job.
 
-Start from [`infrastructure/templates/experiment_template.yaml`](../infrastructure/templates/experiment_template.yaml).
+Start from [`infrastructure/templates/experiment_template.yaml`]({{ site.repository_url }}/blob/main/infrastructure/templates/experiment_template.yaml).
 
 ## Comparing quantized and unquantized candidates
 
@@ -41,19 +48,19 @@ Remove `limit` for a final score. Use a small `limit` only for a smoke test, and
 
 ### vLLM
 
-`model` is required and selects the model that the vLLM process serves. Other useful options are `tensor_parallel_size`, `gpu_memory_utilization`, `dtype`, `gpus`, `hf_token`, and `host_models_dir`. See [`vllm.yaml`](../infrastructure/configs/providers/vllm.yaml).
+`model` is required and selects the model that the vLLM process serves. Other useful options are `tensor_parallel_size`, `gpu_memory_utilization`, `dtype`, `gpus`, `hf_token`, and `host_models_dir`. See [`vllm.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/vllm.yaml).
 
 ### Ollama
 
-With `manage: true` (the default), the framework creates an Ollama container. `pull_models` lists the tags to pull after it is ready, and `models_volume` can preserve downloads between runs. With `manage: false`, it connects to `host` and `port` instead and never starts or stops Ollama. See [`ollama.yaml`](../infrastructure/configs/providers/ollama.yaml).
+With `manage: true` (the default), the framework creates an Ollama container. `pull_models` lists the tags to pull after it is ready, and `models_volume` can preserve downloads between runs. With `manage: false`, it connects to `host` and `port` instead and never starts or stops Ollama. See [`ollama.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/ollama.yaml).
 
 ### llama.cpp
 
-`model_path` is required and points to a GGUF file. `context_length`, `gpu_layers`, and `threads` control the server. It runs one model per process. See [`llamacpp.yaml`](../infrastructure/configs/providers/llamacpp.yaml).
+`model_path` is required and points to a GGUF file. `context_length`, `gpu_layers`, and `threads` control the server. It runs one model per process. See [`llamacpp.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/llamacpp.yaml).
 
 ### OpenAI-compatible API
 
-Set `endpoint`, `api_key` when required, and a fallback `model` name. This provider is unmanaged: it only connects to an already-running service. See [`openai_compatible.yaml`](../infrastructure/configs/providers/openai_compatible.yaml).
+Set `endpoint`, `api_key` when required, and a fallback `model` name. This provider is unmanaged: it only connects to an already-running service. See [`openai_compatible.yaml`]({{ site.repository_url }}/blob/main/infrastructure/configs/providers/openai_compatible.yaml).
 
 ## Execution settings
 

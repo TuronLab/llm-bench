@@ -1,0 +1,12 @@
+title: LLM Benchmarking Framework
+description: Documentation for local, repeatable LLM evaluation.
+url: https://turonlab.github.io
+baseurl: /llm-bench
+repository_url: https://github.com/TuronLab/llm-bench
+theme: jekyll-theme-cayman
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
