@@ -88,9 +88,20 @@ class ResultStore:
         """
         matrix: dict[str, dict[str, Optional[dict]]] = {}
         for model in self.list_models():
-            latest = self.latest_by_benchmark(model)
+            results = self.load(model)
+            latest: dict[tuple[str, str], BenchmarkResult] = {}
+            for result in results:
+                key = (result.metadata.benchmark, result.metadata.provider)
+                if key not in latest or result.metadata.timestamp > latest[key].metadata.timestamp:
+                    latest[key] = result
+
+            by_benchmark: dict[str, list[dict]] = {}
+            for (benchmark, _provider), result in latest.items():
+                by_benchmark.setdefault(benchmark, []).append(_primary_score(result))
+
             matrix[model] = {
-                bench: _primary_score(result) for bench, result in latest.items()
+                benchmark: _aggregate_scores(scores)
+                for benchmark, scores in by_benchmark.items()
             }
         return matrix
 
@@ -105,10 +116,21 @@ def _primary_score(result: BenchmarkResult) -> dict:
     metrics = result.metrics or {}
     primary_key = next(iter(metrics), None)
     return {
+        "provider": result.metadata.provider,
         "primary_metric": primary_key,
         "value": metrics.get(primary_key) if primary_key else None,
         "all_metrics": metrics,
         "timestamp": result.metadata.timestamp.isoformat(),
+    }
+
+
+def _aggregate_scores(scores: list[dict]) -> dict:
+    """Return the historical summary value and retain provider-level scores."""
+    values = [score["value"] for score in scores if isinstance(score.get("value"), (int, float))]
+    return {
+        "primary_metric": scores[0].get("primary_metric"),
+        "value": sum(values) / len(values) if values else None,
+        "providers": sorted(scores, key=lambda score: score.get("provider", "")),
     }
 
 

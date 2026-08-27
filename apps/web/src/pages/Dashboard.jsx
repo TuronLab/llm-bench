@@ -6,6 +6,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
+  const [showProviders, setShowProviders] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,23 +47,43 @@ export default function Dashboard() {
         onChange={(e) => setSearch(e.target.value)}
         style={{ maxWidth: 280, marginBottom: 16 }}
       />
+      <label className="table-toggle">
+        <input
+          type="checkbox"
+          checked={showProviders}
+          onChange={(e) => setShowProviders(e.target.checked)}
+        />
+        Mostrar resultados por provider
+      </label>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
               <th>Model</th>
+              {showProviders && <th>Provider</th>}
               {benchmarks.map((b) => (
                 <th key={b}>{b}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filteredModels.map((model) => (
-              <tr key={model}>
-                <td>{model}</td>
+            {filteredModels.flatMap((model) => {
+              const providerRows = showProviders
+                ? Math.max(1, ...benchmarks.map((bench) => matrix[model]?.[bench]?.providers?.length || 0))
+                : 1;
+              const providers = showProviders
+                ? Array.from(new Set(benchmarks.flatMap((bench) => (matrix[model]?.[bench]?.providers || []).map((p) => p.provider)))).sort()
+                : [null];
+              return Array.from({ length: providerRows }, (_, rowIndex) => (
+              <tr key={`${model}-${rowIndex}`}>
+                {rowIndex === 0 && <td rowSpan={providerRows}>{model}</td>}
+                {showProviders && <td>{providers[rowIndex] || "-"}</td>}
                 {benchmarks.map((bench) => {
                   const cell = matrix[model]?.[bench];
-                  if (!cell || cell.value === null || cell.value === undefined) {
+                  const score = showProviders
+                    ? cell?.providers?.find((p) => p.provider === providers[rowIndex])
+                    : cell;
+                  if (!score || score.value === null || score.value === undefined) {
                     return <td key={bench} className="empty-cell">-</td>;
                   }
                   return (
@@ -70,14 +91,15 @@ export default function Dashboard() {
                       key={bench}
                       className="score-cell"
                       onClick={() => navigate(`/results/${encodeURIComponent(model)}/${encodeURIComponent(bench)}`)}
-                      title={`Primary metric: ${cell.primary_metric}`}
+                      title={`Primary metric: ${score.primary_metric}`}
                     >
-                      {typeof cell.value === "number" ? cell.value.toFixed(4) : String(cell.value)}
+                      {typeof score.value === "number" ? score.value.toFixed(4) : String(score.value)}
                     </td>
                   );
                 })}
               </tr>
-            ))}
+              ));
+            })}
           </tbody>
         </table>
       </div>

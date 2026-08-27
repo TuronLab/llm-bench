@@ -82,6 +82,8 @@ th { color: var(--muted); font-weight: 600; }
 td.score-cell { cursor: pointer; color: var(--accent); }
 td.score-cell:hover { text-decoration: underline; }
 td.empty-cell { color: var(--muted); }
+.table-toggle { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 16px 16px; color: var(--muted); font-size: 14px; }
+.table-toggle input { width: auto; }
 
 .badge {
   display: inline-block;
