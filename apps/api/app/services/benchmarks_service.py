@@ -2,7 +2,7 @@
 Enumerates benchmarks (tasks) available through lm-evaluation-harness.
 
 If `lm_eval` is installed in the current environment (e.g. inside the
-backend container, which bundles it for this purpose), its task registry is
+API container, which bundles it for this purpose), its task registry is
 queried directly so the framework always reflects whatever version of the
 harness is deployed -- no benchmark list is hand-maintained here. If the
 harness isn't importable (e.g. during lightweight local development of the

@@ -1,6 +1,6 @@
 # Template Dockerfile-fragment / notes for adding a brand-new provider type
 # to the framework's Docker architecture. Provider containers are launched
-# dynamically by the backend (see infrastructure/providers/docker_runtime.py) rather than
+# dynamically by the API service (`apps/api`; see infrastructure/providers/docker_runtime.py) rather than
 # declared as static docker-compose services, but if your provider needs a
 # custom image, build it here and reference it from your provider's
 # `options.image` default.

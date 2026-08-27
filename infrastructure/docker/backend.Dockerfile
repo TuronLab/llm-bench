@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-# Backend service: FastAPI orchestration API + benchmark runner.
+# API service (`apps/api`): FastAPI orchestration API + benchmark runner.
 #
 # This image bundles lm-evaluation-harness and the Docker CLI/SDK so the
-# backend can both (a) execute `lm_eval` against provider endpoints and
+# API service can both (a) execute `lm_eval` against provider endpoints and
 # (b) launch/stop provider containers on the host's Docker daemon (mounted
 # in via docker-compose.yml as a bind-mounted socket).
 FROM python:3.11-slim

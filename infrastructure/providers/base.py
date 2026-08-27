@@ -1,10 +1,10 @@
 """
 Provider abstraction layer.
 
-Every inference backend (vLLM, Ollama, llama.cpp, OpenAI-compatible APIs, ...)
+Every inference provider (vLLM, Ollama, llama.cpp, OpenAI-compatible APIs, ...)
 implements the `Provider` interface defined here. The benchmark engine and the
 scheduler only ever talk to this interface, never to a concrete implementation,
-which keeps the framework backend-agnostic and trivially extensible.
+which keeps the framework provider-agnostic and trivially extensible.
 
 To add a new provider:
     1. Subclass `Provider`.
@@ -74,11 +74,11 @@ class Provider(abc.ABC):
     Common interface every inference provider must implement.
 
     Lifecycle contract:
-        start()              -> begin launching the backend (may be async under the hood)
+        start()              -> begin launching the provider server (may be async under the hood)
         wait_until_ready()   -> block (with timeout) until the endpoint accepts requests
         endpoint()           -> return the OpenAI-compatible base URL to hit
         list_models()        -> enumerate models currently servable
-        stop()                -> tear down the backend and release resources
+        stop()                -> tear down the provider server and release resources
     """
 
     def __init__(self, config: ProviderConfig):

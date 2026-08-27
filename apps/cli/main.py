@@ -1,8 +1,8 @@
 """
 `bench` -- command line interface for the LLM Benchmarking Framework.
 
-The CLI is a thin client over the REST API exposed by the backend service,
-so it works identically whether the backend is running locally via Docker
+The CLI is a thin client over the REST API exposed by the API service,
+so it works identically whether that service is running locally via Docker
 Compose or on a remote host (configure with `BENCHLAB_API_URL`).
 """
 

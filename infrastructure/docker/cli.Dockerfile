@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# CLI service: `bench` command, invoked via `docker compose run cli ...`.
+# CLI application (`apps/cli`): `bench`, invoked via `docker compose run cli ...`.
 FROM python:3.11-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.1 /uv /uvx /bin/

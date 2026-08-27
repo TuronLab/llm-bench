@@ -101,7 +101,7 @@ class VLLMProvider(Provider):
             raise ProviderError(f"Could not list vLLM models: {exc}") from exc
 
     def endpoint(self) -> str:
-        # Reachable from the backend container via the shared Docker network
+        # Reachable from the API container via the shared Docker network
         # (see infrastructure/providers/docker_runtime.py for why this isn't 'localhost').
         return f"http://{self._container_name}:{self._port}/v1"
 

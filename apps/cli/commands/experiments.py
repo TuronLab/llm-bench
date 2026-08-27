@@ -42,7 +42,7 @@ def create(
         None, help="Path to experiment YAML. Omit to launch the interactive wizard."
     )
 ):
-    """Submit an experiment definition to the backend (does not start execution)."""
+    """Submit an experiment definition to the API service (does not start execution)."""
     if experiment_file is None:
         definition = _interactive_wizard()
     else:

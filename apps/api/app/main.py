@@ -1,5 +1,5 @@
 """
-FastAPI application entrypoint for the LLM Benchmarking Framework backend.
+FastAPI application entrypoint for the LLM Benchmarking Framework API.
 
 Run directly with `uvicorn apps.api.app.main:app` or via the provided Docker
 container (see infrastructure/docker/backend.Dockerfile and docker-compose.yml).

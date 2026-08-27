@@ -4,7 +4,7 @@ Single source of truth for where persistent data lives on disk.
 Only experiment definitions, results, and (optionally) logs are ever written
 outside of ephemeral container filesystems. All paths are overridable via
 environment variables so the same code works identically whether it's
-running in the backend container, the CLI container, or bare-metal during
+running in the API container, the CLI container, or bare-metal during
 development.
 """
 
@@ -13,15 +13,15 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-PROJECT_ROOT = Path(os.environ.get("BENCHLAB_ROOT", Path(__file__).resolve().parent.parent))
+PROJECT_ROOT = Path(os.environ.get("BENCHLAB_ROOT", Path(__file__).resolve().parents[2]))
 
 EXPERIMENTS_DIR = Path(os.environ.get("BENCHLAB_EXPERIMENTS_DIR", PROJECT_ROOT / "experiments"))
 RESULTS_DIR = Path(os.environ.get("BENCHLAB_RESULTS_DIR", PROJECT_ROOT / "results"))
 LOGS_DIR = Path(os.environ.get("BENCHLAB_LOGS_DIR", PROJECT_ROOT / "logs"))
-CONFIGS_DIR = Path(os.environ.get("BENCHLAB_CONFIGS_DIR", PROJECT_ROOT / "configs"))
+CONFIGS_DIR = Path(os.environ.get("BENCHLAB_CONFIGS_DIR", PROJECT_ROOT / "infrastructure" / "configs"))
 
 # State file tracking running/completed/failed jobs so experiments survive
-# backend restarts (see infrastructure/storage/experiment_store.py).
+# API service restarts (see infrastructure/storage/experiment_store.py).
 STATE_DB_PATH = Path(os.environ.get("BENCHLAB_STATE_DB", EXPERIMENTS_DIR / ".state" / "state.json"))
 
 

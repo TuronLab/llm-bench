@@ -1,4 +1,4 @@
-# Frontend: React + Vite single-page app, built and served as static assets.
+# Web application (`apps/web`): React + Vite SPA, built and served as static assets.
 FROM node:20-slim AS build
 WORKDIR /app
 COPY apps/web/package.json /app/package.json

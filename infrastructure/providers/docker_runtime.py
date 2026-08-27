@@ -5,12 +5,12 @@ own ephemeral inference server containers.
 
 Networking note
 ----------------
-The backend itself runs inside a container and talks to the host's Docker
+The API application (`apps/api`) runs inside a container and talks to the host's Docker
 daemon over the mounted socket ("Docker outside of Docker") to launch
-provider containers. Because of that, `localhost` from the backend's
+provider containers. Because of that, `localhost` from the API container's
 network namespace does NOT reach a sibling provider container's published
 port. Instead, every provider container launched here is attached to the
-same user-defined bridge network as the backend (`BENCHLAB_DOCKER_NETWORK`,
+same user-defined bridge network as the API service (`BENCHLAB_DOCKER_NETWORK`,
 matching the `benchlab` network in docker-compose.yml), which gives it a
 resolvable DNS name equal to its container name. Providers must therefore
 build their `endpoint()` using the container name + the container's
@@ -48,7 +48,7 @@ class DockerContainerRuntime:
     """
     Manages the lifecycle of a single Docker container that hosts an
     inference server. Containers are labeled so they can be identified and
-    cleaned up even after an unexpected backend restart.
+    cleaned up even after an unexpected API service restart.
     """
 
     LABEL_KEY = "benchlab.managed"

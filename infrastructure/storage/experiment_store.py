@@ -4,7 +4,7 @@ File-backed persistence for experiment state.
 Experiments (definitions, derived jobs, statuses, timestamps) are written to
 `experiments/<id>.json` on every mutation. This is deliberately simple (no
 external database required) while still satisfying the requirement that
-experiment history survives backend restarts. Swapping this for a real
+experiment history survives API service restarts. Swapping this for a real
 database later only requires reimplementing this module's interface.
 """
 

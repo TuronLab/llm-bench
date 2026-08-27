@@ -1,7 +1,7 @@
 """
-Core data models shared by every part of the framework (backend API,
-scheduler, runner, CLI). Centralizing them here avoids circular imports
-between `backend` and the framework packages it orchestrates.
+Core data models shared by the API application, execution core, and CLI.
+Centralizing them in infrastructure keeps the other layers independent and
+avoids circular imports.
 """
 
 from __future__ import annotations

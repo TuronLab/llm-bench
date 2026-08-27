@@ -1,4 +1,4 @@
-"""Shared HTTP client for talking to the backend REST API from the CLI."""
+"""Shared HTTP client for talking to the API service from the CLI."""
 
 from __future__ import annotations
 

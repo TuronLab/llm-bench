@@ -60,7 +60,7 @@ def build_command(
 ) -> list[str]:
     """
     Construct the `lm_eval` CLI command. `--model` and `--model_args` are
-    derived from the provider (backend-agnostic), everything else maps
+    derived from the provider (provider-agnostic), everything else maps
     directly onto standard lm-evaluation-harness flags.
     """
     cmd = [

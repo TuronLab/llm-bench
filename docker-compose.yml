@@ -2,16 +2,16 @@
 # Docker Compose orchestration for the LLM Benchmarking Framework.
 #
 # Services:
-#   backend  - REST API + orchestration engine (also runs lm-evaluation-harness
+#   backend  - `apps/api`: REST API + orchestration engine (also runs lm-evaluation-harness
 #              and manages provider containers via the Docker socket).
-#   frontend - Web dashboard / experiment builder / live monitoring UI.
-#   cli      - One-shot `bench` CLI container (`docker compose run --rm cli ...`).
+#   frontend - `apps/web`: dashboard, experiment builder, and live monitoring UI.
+#   cli      - `apps/cli`: one-shot `bench` client (`docker compose run --rm cli ...`).
 #
 # Provider containers (vLLM, Ollama, llama.cpp) are launched and destroyed
-# automatically by the backend at runtime -- they are NOT declared as
+# automatically by the API service at runtime -- they are NOT declared as
 # long-running services here, in line with "launch on demand, tear down
 # after use" from the project requirements. They still run on the same
-# Docker daemon/network so the backend can reach them.
+# Docker daemon/network so the API service can reach them.
 #
 # Only ./experiments, ./results, and (optionally) ./logs are bind-mounted
 # from the host; everything else (Python packages, model downloads, caches,
@@ -40,7 +40,7 @@ services:
       - ./experiments:/app/experiments
       - ./results:/app/results
       - ./logs:/app/logs
-      # Docker socket so the backend can launch/stop provider containers.
+      # Docker socket so the API service can launch/stop provider containers.
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - benchlab

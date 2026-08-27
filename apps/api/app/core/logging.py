@@ -1,4 +1,4 @@
-"""Structured, consistent logging setup shared by the backend and (indirectly) the runner."""
+"""Structured logging setup shared by the API application and, indirectly, the runner."""
 
 from __future__ import annotations
 

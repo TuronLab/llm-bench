@@ -38,7 +38,7 @@ The service builds `ScheduledJob`s from an `ExperimentDefinition` and hands
 them to the `Scheduler`, which enforces sequential/parallel semantics and
 per-provider concurrency safety. Job and experiment status transitions are
 persisted immediately so the live monitoring page (which polls the REST
-API) and backend restarts both see consistent state.
+API) and API service restarts both see consistent state.
 """
 
 from __future__ import annotations

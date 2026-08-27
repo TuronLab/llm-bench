@@ -1,4 +1,4 @@
-"""Backend application configuration, sourced from environment variables."""
+"""API application configuration, sourced from environment variables."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
 """
 Lightweight sanity tests for the scheduler's fault-isolation behavior.
 
-These don't require Docker, a running backend, or lm-evaluation-harness --
+These don't require Docker, a running API service, or lm-evaluation-harness --
 they exercise `Scheduler` directly with fake jobs to prove that one job
 raising an exception never prevents the rest from running. Run with:
 
