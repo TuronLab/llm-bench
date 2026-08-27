@@ -323,6 +323,9 @@ def _stop_provider_if_needed(provider: Provider, provider_config: ProviderConfig
 def _start_provider(provider: Provider) -> None:
     provider.start()
     provider.wait_until_ready()
+    pull_configured_models = getattr(provider, "pull_configured_models", None)
+    if callable(pull_configured_models):
+        pull_configured_models()
 
 
 def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentDefinition):
