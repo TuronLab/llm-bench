@@ -51,10 +51,12 @@ from typing import Optional
 from infrastructure.providers.base import Provider, ProviderConfig, ProviderError
 from infrastructure.providers.registry import create_provider
 from core.runner.harness_runner import run_benchmark
+from core.runner.scalability_runner import run_scalability_test
 from core.scheduler.job import ScheduledJob
 from core.scheduler.scheduler import Scheduler
 from infrastructure.storage.experiment_store import experiment_store
 from infrastructure.storage.result_store import result_store
+from infrastructure.storage.scalability_store import scalability_store
 from infrastructure.storage.schemas import (
     ExperimentDefinition,
     ExperimentRecord,
@@ -98,6 +100,18 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
         for model in definition.models
         for benchmark in definition.benchmarks
     ]
+    if definition.scalability:
+        jobs.extend(
+            JobRecord(
+                experiment_id="",
+                provider_name=provider_name,
+                model=model,
+                benchmark=f"scalability-{users}",
+                kind="scalability",
+            )
+            for model in definition.models
+            for users in definition.scalability.users
+        )
     record = ExperimentRecord(definition=definition, status=ExperimentStatus.DRAFT, jobs=jobs)
     for job in record.jobs:
         job.experiment_id = record.id
@@ -334,6 +348,16 @@ def _start_provider(provider: Provider) -> None:
 
 def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentDefinition):
     def _runner() -> None:
+        if job.kind == "scalability":
+            if definition.scalability is None:  # Defensive: persisted malformed job.
+                raise RuntimeError("Scalability job is missing its configuration")
+            users = int(job.benchmark.removeprefix("scalability-"))
+            result = run_scalability_test(
+                provider=provider, model=job.model, config=definition.scalability, users=users
+            )
+            path = scalability_store.append(result)
+            job.result_path = str(path)
+            return
         result = run_benchmark(
             provider=provider,
             model=job.model,

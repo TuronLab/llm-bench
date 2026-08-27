@@ -9,7 +9,7 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -56,6 +56,17 @@ class ProviderSpec(BaseModel):
     supports_concurrency: bool = False
 
 
+class ScalabilityConfig(BaseModel):
+    """Load-test settings. Each entry in ``users`` becomes one job per model."""
+
+    users: list[Annotated[int, Field(ge=1)]] = Field(..., min_length=1, description="Concurrent users to test")
+    input: str = Field(..., min_length=1, description="Prompt text or file:// URI to a UTF-8 .txt/.md file")
+    max_output_tokens: int = Field(default=128, ge=1)
+    requests_per_user: int = Field(default=1, ge=1)
+    temperature: float = Field(default=0, ge=0)
+    timeout_seconds: float = Field(default=120, gt=0)
+
+
 class ExperimentDefinition(BaseModel):
     """The declarative, user-authored description of an experiment (maps 1:1 to the YAML format)."""
 
@@ -63,9 +74,10 @@ class ExperimentDefinition(BaseModel):
     description: Optional[str] = None
     provider: ProviderSpec
     models: list[str]
-    benchmarks: list[str]
+    benchmarks: list[str] = Field(default_factory=list)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
     extra_harness_args: dict[str, Any] = Field(default_factory=dict)
+    scalability: Optional[ScalabilityConfig] = None
 
 
 class JobRecord(BaseModel):
@@ -76,6 +88,7 @@ class JobRecord(BaseModel):
     provider_name: str
     model: str
     benchmark: str
+    kind: str = "benchmark"
     status: JobStatus = JobStatus.PENDING
     created_at: datetime = Field(default_factory=datetime.utcnow)
     started_at: Optional[datetime] = None
@@ -126,3 +139,17 @@ class BenchmarkResult(BaseModel):
     metadata: ResultMetadata
     metrics: dict[str, Any] = Field(default_factory=dict)
     raw: Optional[dict[str, Any]] = Field(default=None, description="Full, untouched harness output")
+
+
+class ScalabilityResult(BaseModel):
+    """One load-test measurement for a model/provider/concurrency level."""
+
+    model: str
+    provider: str
+    users: int
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    input: str
+    max_output_tokens: int
+    requests_per_user: int
+    provider_options: dict[str, Any] = Field(default_factory=dict)
+    metrics: dict[str, Any] = Field(default_factory=dict)

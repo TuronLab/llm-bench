@@ -1,0 +1,24 @@
+# Measure how streaming performance changes as concurrent users increase.
+name: ollama-scalability
+description: "Streaming load test for a local Ollama model."
+
+provider:
+  type: ollama
+  options:
+    manage: true
+    gpus: false
+    pull_models:
+      - llama3.2:1b
+
+models:
+  - llama3.2:1b
+
+# Benchmarks can be omitted for a scalability-only experiment.
+scalability:
+  users: [1, 2, 4, 8]
+  # The backend reads this UTF-8 Markdown file once before starting the burst.
+  input: "file://./experiments/inputs/scalability-long-prompt.md"
+  max_output_tokens: 128
+  requests_per_user: 2
+  temperature: 0
+  timeout_seconds: 120

@@ -34,6 +34,7 @@ export const api = {
     request(`/experiments/${experimentId}/logs/${jobId}?tail=${tail}`),
 
   getResultsMatrix: () => request("/results"),
+  getScalabilityResults: () => request("/results/scalability"),
   getModelResults: (model) => request(`/results/${encodeURIComponent(model)}`),
   getDetailedResult: (model, benchmark) =>
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}`),

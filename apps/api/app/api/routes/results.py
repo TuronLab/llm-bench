@@ -16,6 +16,12 @@ def list_results():
     }
 
 
+@router.get("/scalability")
+def list_scalability_results():
+    """Latest model load-test measurements, grouped client-side for comparison."""
+    return {"results": results_service.scalability_results()}
+
+
 @router.get("/{model}")
 def get_model_results(model: str):
     results = results_service.results_for_model(model)

@@ -41,10 +41,11 @@ class ExperimentStore:
             logger.debug("Persisted experiment %s -> %s", record.id, path)
 
     def get(self, experiment_id: str) -> Optional[ExperimentRecord]:
-        path = self._path(experiment_id)
-        if not path.exists():
-            return None
-        return ExperimentRecord.model_validate_json(path.read_text(encoding="utf-8"))
+        with self._lock:
+            path = self._path(experiment_id)
+            if not path.exists():
+                return None
+            return ExperimentRecord.model_validate_json(path.read_text(encoding="utf-8"))
 
     def delete(self, experiment_id: str) -> bool:
         path = self._path(experiment_id)

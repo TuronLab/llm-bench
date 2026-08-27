@@ -80,12 +80,19 @@ th, td {
 th { color: var(--muted); font-weight: 600; }
 th.sortable-header { cursor: pointer; user-select: none; }
 th.sortable-header:hover { color: var(--text); }
+th.group-header { text-align: center; border-left: 1px solid var(--border); }
+.scalability-table td:nth-child(5n + 3) { border-left: 1px solid var(--border); }
 
 td.score-cell { cursor: pointer; color: var(--accent); }
 td.score-cell:hover { text-decoration: underline; }
 td.empty-cell { color: var(--muted); }
 .table-toggle { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 16px 16px; color: var(--muted); font-size: 14px; }
 .table-toggle input { width: auto; }
+.metric-help summary { cursor: pointer; font-weight: 600; color: var(--text); }
+.metric-help dl { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; margin: 16px 0 0; font-size: 13px; }
+.metric-help dt { color: var(--accent); font-weight: 600; }
+.metric-help dd { margin: 0; color: var(--muted); }
+.metric-note { color: var(--muted); font-size: 12px; margin: 16px 0 0; }
 
 .badge {
   display: inline-block;

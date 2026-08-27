@@ -159,3 +159,42 @@ For a normal final comparison, remove `limit` (or use the same value for every
 candidate). Other harness options such as `seed`, `gen_kwargs`, `include_path`,
 and `trust_remote_code` may be useful depending on the task and provider, but
 must be checked against the installed harness version and task requirements.
+
+## Scalability tests
+
+An experiment can also measure streamed chat-completion performance while the
+number of simultaneous virtual users increases. Add a `scalability` section;
+each value in `users` creates one load-test job for each model. `input` is sent
+by every virtual user and `max_output_tokens` limits each response. The input
+can be literal text or a `file://` URI. Files are read as UTF-8 before the test
+starts, so every request uses exactly the same contents. Use
+`file:///absolute/path/input.md` for an absolute path or
+`file://./relative/path/input.txt` for a relative path resolved by the process
+running the experiment (normally the backend container).
+
+```yaml
+models:
+  - llama3.2:1b
+scalability:
+  users: [1, 2, 4, 8]
+  input: "file://./experiments/inputs/transformers.md"
+  max_output_tokens: 128
+  requests_per_user: 2
+  temperature: 0
+  timeout_seconds: 120
+```
+
+Results appear in the web UI's **Scalability** tab. It reports TTFT (time to
+first token), p95 total latency, aggregate output throughput, perceived
+per-request output speed, and failed requests for each model/provider/user
+level. Providers that do not include
+completion-token usage in streaming responses use a word-count estimate for
+output throughput, marked with an asterisk in the UI. This feature requires an
+OpenAI-compatible `/v1/chat/completions` streaming endpoint; the local
+Hugging Face provider is not supported.
+
+`Output total` is the aggregate throughput of the complete burst. `Output/user`
+is the mean perceived speed of an individual response, measured from its first
+token until its final token. It is therefore closer to the speed experienced by
+each user and is not calculated by simply dividing aggregate throughput by the
+number of users.
