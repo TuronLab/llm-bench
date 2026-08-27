@@ -22,12 +22,13 @@ function MetricHelp() {
 export default function Scalability() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [sort, setSort] = useState({ key: "model", direction: "asc" });
 
   useEffect(() => {
     api.getScalabilityResults().then(setData).catch((e) => setError(e.message));
   }, []);
 
-  const { users, rows } = useMemo(() => {
+  const { users, rows: unsortedRows } = useMemo(() => {
     const results = data?.results || [];
     const levels = [...new Set(results.map((result) => result.users))].sort((a, b) => a - b);
     const grouped = new Map();
@@ -39,12 +40,37 @@ export default function Scalability() {
     return { users: levels, rows: [...grouped.values()].sort((a, b) => a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider)) };
   }, [data]);
 
+  const toggleSort = (key) => setSort((current) => ({
+    key,
+    direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
+  }));
+  const indicator = (key) => sort.key === key ? (sort.direction === "asc" ? "▲" : "▼") : "";
+  const metricValue = (row, key) => {
+    if (key === "model") return row.model;
+    if (key === "provider") return row.provider;
+    const [level, metric] = key.split(":");
+    return row.values[level]?.metrics?.[metric] ?? null;
+  };
+  const rows = [...unsortedRows].sort((a, b) => {
+    const left = metricValue(a, sort.key);
+    const right = metricValue(b, sort.key);
+    if (left === right) return a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider);
+    if (left === null || left === undefined) return 1;
+    if (right === null || right === undefined) return -1;
+    const comparison = typeof left === "number" && typeof right === "number"
+      ? left - right
+      : String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: "base" });
+    return sort.direction === "asc" ? comparison : -comparison;
+  });
+
   if (error) return <div className="panel error-text">Failed to load scalability results: {error}</div>;
   if (!data) return <div className="panel">Loading scalability results...</div>;
   if (!rows.length) return <div><h1>Scalability</h1><p className="subtitle">Concurrent streaming performance by model and provider.</p><MetricHelp /><div className="panel">No scalability tests yet. Add a <code>scalability</code> section to an experiment YAML and run it.</div></div>;
 
+  // Keep model groups together when rows are sorted by a provider metric.
+  const groupedRows = [...new Set(rows.map((row) => row.model))].flatMap((model) => rows.filter((row) => row.model === model));
   let previousModel = null;
-  const modelCounts = rows.reduce((counts, row) => ({ ...counts, [row.model]: (counts[row.model] || 0) + 1 }), {});
+  const modelCounts = groupedRows.reduce((counts, row) => ({ ...counts, [row.model]: (counts[row.model] || 0) + 1 }), {});
   return (
     <div>
       <h1>Scalability</h1>
@@ -53,11 +79,11 @@ export default function Scalability() {
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="scalability-table">
           <thead>
-            <tr><th rowSpan="2">Model</th><th rowSpan="2">Provider</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
-            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`}>TTFT p50</th>, <th key={`${level}-latency`}>Latency p95</th>, <th key={`${level}-rate`}>Output total</th>, <th key={`${level}-perceived`}>Output/user</th>, <th key={`${level}-errors`}>Errors</th>])}</tr>
+            <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("provider")}>Provider {indicator("provider")}</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
+            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Output total {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Output/user {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
-            {rows.map((row) => {
+            {groupedRows.map((row) => {
               const showModel = row.model !== previousModel;
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}`}>
