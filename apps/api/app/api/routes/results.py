@@ -40,6 +40,12 @@ def get_detailed_result(model: str, benchmark: str):
         )
     return result
 
+@router.delete("/scalability/{model}/{provider}/{users}")
+def delete_scalability_result(model: str, provider: str, users: int, timestamp: str):
+    if not results_service.delete_scalability_result(model, provider, users, timestamp):
+        raise HTTPException(status_code=404, detail="Result not found")
+    return {"deleted": True}
+
 
 @router.delete("/{model}/{benchmark}")
 def delete_detailed_result(model: str, benchmark: str, timestamp: str | None = Query(default=None)):

@@ -40,4 +40,5 @@ export const api = {
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}`),
   deleteDetailedResult: (model, benchmark, timestamp) =>
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}?timestamp=${encodeURIComponent(timestamp)}`, { method: "DELETE" }),
+  deleteScalabilityResult: (result) => request(`/results/scalability/${encodeURIComponent(result.model)}/${encodeURIComponent(result.provider)}/${result.users}?timestamp=${encodeURIComponent(result.timestamp)}`, { method: "DELETE" }),
 };

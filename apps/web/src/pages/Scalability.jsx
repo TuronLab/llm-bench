@@ -105,7 +105,7 @@ export default function Scalability() {
               const showModel = row.model !== previousModel;
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
-                {showModel && <td rowSpan={modelCounts[row.model]}>{row.model}</td>}
+                {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}`}>{row.model}</a></td>}
                 <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}) }} /></td>
                 {users.flatMap((level) => {
                   const result = row.values[level];

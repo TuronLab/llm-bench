@@ -121,7 +121,7 @@ export default function Dashboard() {
               const providerRows = showMetadata ? Math.max(1, providers.length) : 1;
               return Array.from({ length: providerRows }, (_, rowIndex) => (
               <tr key={`${model}-${rowIndex}`}>
-                {rowIndex === 0 && <td rowSpan={providerRows}>{model}</td>}
+                {rowIndex === 0 && <td rowSpan={providerRows}><a href={`/model/${encodeURIComponent(model)}`}>{model}</a></td>}
                 {showMetadata && (() => { const p = providers[rowIndex]; const common = p?.metadata?.common || {}; return <><td>{p?.provider || "-"}</td>{visibleCommonKeys.map((key) => <td key={key}>{common[key] ?? ""}</td>)}{showExtraConf && <td style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata(p?.metadata?.extra_conf)}</td>}{showResources && <td style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata(p?.metadata?.resources)}</td>}</>; })()}
                 {benchmarks.map((bench) => {
                   const cell = matrix[model]?.[bench];

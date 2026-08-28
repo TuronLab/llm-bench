@@ -37,5 +37,15 @@ class ScalabilityStore:
                         latest[key] = result
             return sorted(latest.values(), key=lambda result: (result.model, result.provider, result.users))
 
+    def delete(self, model: str, provider: str, users: int, timestamp: str) -> bool:
+        path = self._dir / f"{sanitize_model_name(model)}.json"
+        if not path.exists(): return False
+        with self._lock:
+            entries = json.loads(path.read_text(encoding="utf-8"))
+            kept = [e for e in entries if not (e.get("model") == model and e.get("provider") == provider and e.get("users") == users and e.get("timestamp") == timestamp)]
+            if len(kept) == len(entries): return False
+            path.write_text(json.dumps(kept, indent=2), encoding="utf-8")
+            return True
+
 
 scalability_store = ScalabilityStore()

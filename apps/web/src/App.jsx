@@ -6,6 +6,7 @@ import LiveMonitoring from "./pages/LiveMonitoring.jsx";
 import ResultDetail from "./pages/ResultDetail.jsx";
 import ExperimentsList from "./pages/ExperimentsList.jsx";
 import Scalability from "./pages/Scalability.jsx";
+import ModelResults from "./pages/ModelResults.jsx";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/results/:model/:benchmark" element={<ResultDetail />} />
+          <Route path="/model/:model" element={<ModelResults />} />
           <Route path="/experiments" element={<ExperimentsList />} />
           <Route path="/experiments/new" element={<ExperimentBuilder />} />
           <Route path="/monitoring" element={<LiveMonitoring />} />

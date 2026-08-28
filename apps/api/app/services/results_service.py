@@ -36,3 +36,6 @@ def delete_latest_result(model: str, benchmark: str, timestamp: str | None = Non
 def scalability_results() -> list[dict]:
     """Latest load-test result for every model/provider/concurrency combination."""
     return [result.model_dump(mode="json") for result in scalability_store.latest()]
+
+def delete_scalability_result(model: str, provider: str, users: int, timestamp: str) -> bool:
+    return scalability_store.delete(model, provider, users, timestamp)
