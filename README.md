@@ -27,7 +27,32 @@ docker compose run --rm cli experiment validate experiments/my-comparison.yaml
 docker compose run --rm cli experiment run experiments/my-comparison.yaml
 ```
 
-Use the dashboard's **New Experiment** screen instead if you prefer not to edit YAML.
+A minimal experiment definition looks like this:
+
+```yaml
+name: simple-ollama-test
+
+providers:
+  - type: ollama
+    options:
+      manage: false
+      host: host.docker.internal
+      port: 11434
+
+models:
+  - llama3.2:1b
+
+benchmarks:
+  - gsm8k
+
+load_testing:
+  concurrent_users: [1, 2, 4]
+  input: "Tell me a short story about a robot."
+  max_output_tokens: 64
+  requests_per_user: 5
+```
+
+Alternatively, you can use the dashboard's **New Experiment** screen if you prefer not to edit YAML.
 
 > **Note:** Docker Engine 24+ and Docker Compose v2 are required. The default
 > installation and quickstart are CPU-only; install the NVIDIA Container Toolkit
