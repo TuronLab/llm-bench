@@ -111,7 +111,7 @@ export default function ExperimentBuilder() {
       };
       const definition = {
         name,
-        provider: { type: providerType, options: providerOptions },
+        providers: [{ type: providerType, options: providerOptions }],
         models,
         benchmarks: selectedBenchmarks,
         execution: { mode, workers: mode === "parallel" ? Number(workers) : 1 },

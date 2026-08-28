@@ -10,12 +10,12 @@
 name: multi-benchmark-vllm
 description: "Full suite benchmarking of a 7B model on standard academic tasks."
 
-provider:
-  type: vllm
-  options:
-    tensor_parallel_size: 1
-    gpu_memory_utilization: 0.9
-    dtype: auto
+providers:
+  - type: vllm
+    options:
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.9
+      dtype: auto
 
 models:
   - mistralai/Mistral-7B-Instruct-v0.3
@@ -29,8 +29,8 @@ benchmarks:
   - winogrande
 
 execution:
-  mode: parallel
-  workers: 2
+    mode: parallel
+    workers: 2
 
 extra_harness_args:
-  num_fewshot: 5
+    num_fewshot: 5

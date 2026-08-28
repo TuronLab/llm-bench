@@ -6,12 +6,12 @@
 name: my-experiment
 description: "Optional human-readable description of what this experiment measures."
 
-provider:
-  type: ollama              # vllm | ollama | llamacpp | huggingface | openai_compatible
-  name: null                 # optional instance name; defaults to `type`
-  options: {}                 # see infrastructure/configs/providers/<type>.yaml for the schema
-  keep_alive: false            # leave the provider running after the experiment finishes
-  supports_concurrency: false   # true only if this provider instance can safely serve >1 request at once
+providers:
+  - type: ollama              # vllm | ollama | llamacpp | huggingface | openai_compatible
+    name: null                 # optional instance name; defaults to `type`
+    options: {}                 # see infrastructure/configs/providers/<type>.yaml for the schema
+    keep_alive: false            # leave the provider running after the experiment finishes
+    supports_concurrency: false   # true only if this provider instance can safely serve >1 request at once
 
 models:
   - model-a

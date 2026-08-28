@@ -108,7 +108,6 @@ def recover_interrupted_experiments() -> int:
 
 
 def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
-    provider_name = definition.provider.name or definition.provider.type
     jobs = [
         JobRecord(
             experiment_id="",  # filled in below once we know the experiment id
@@ -116,8 +115,10 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
             model=model,
             benchmark=benchmark,
         )
+        for provider in definition.providers
         for model in definition.models
         for benchmark in definition.benchmarks
+        for provider_name in [provider.name or provider.type]
     ]
     if definition.load_testing:
         jobs.extend(
@@ -128,8 +129,10 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
                 benchmark=f"load_testing-{concurrent_users}",
                 kind="load_testing",
             )
+            for provider in definition.providers
             for model in definition.models
             for concurrent_users in definition.load_testing.concurrent_users
+            for provider_name in [provider.name or provider.type]
         )
     record = ExperimentRecord(definition=definition, status=ExperimentStatus.DRAFT, jobs=jobs)
     for job in record.jobs:
@@ -198,13 +201,13 @@ def _run_experiment(experiment_id: str) -> None:
     experiment_store.save(record)
 
     definition = record.definition
-    provider_name = definition.provider.name or definition.provider.type
-    provider_type = definition.provider.type
-
-    if provider_type in SINGLE_MODEL_PROVIDER_TYPES:
-        _run_single_model_provider_experiment(experiment_id, record, definition, provider_name, provider_type)
-    else:
-        _run_shared_provider_experiment(experiment_id, record, definition, provider_name, provider_type)
+    for provider_spec in definition.providers:
+        provider_name = provider_spec.name or provider_spec.type
+        provider_type = provider_spec.type
+        if provider_type in SINGLE_MODEL_PROVIDER_TYPES:
+            _run_single_model_provider_experiment(experiment_id, record, definition, provider_name, provider_type, provider_spec)
+        else:
+            _run_shared_provider_experiment(experiment_id, record, definition, provider_name, provider_type, provider_spec)
 
     _finalize_experiment_status(experiment_id)
 
@@ -215,9 +218,10 @@ def _run_shared_provider_experiment(
     definition: ExperimentDefinition,
     provider_name: str,
     provider_type: str,
+    provider_spec,
 ) -> None:
     """One provider instance, started once, serving every model in the experiment."""
-    provider_config = _build_provider_config(definition, provider_name, provider_type, definition.provider.options)
+    provider_config = _build_provider_config(definition, provider_name, provider_type, provider_spec.options, provider_spec)
 
     try:
         provider = create_provider(provider_config)
@@ -227,11 +231,11 @@ def _run_shared_provider_experiment(
         # KeyError, ...) must be isolated to this provider's jobs rather than
         # propagate and abort the whole experiment.
         logger.error("Provider failed to start for experiment %s: %s", experiment_id, exc)
-        _fail_jobs_for_models(record, definition.models, str(exc))
+        _fail_jobs_for_models(record, definition.models, str(exc), provider_name=provider_name)
         return
 
     scheduler = _new_scheduler(experiment_id, definition)
-    jobs_for_provider = [j for j in record.jobs if j.status == JobStatus.PENDING]
+    jobs_for_provider = [j for j in record.jobs if j.status == JobStatus.PENDING and j.provider_name == provider_name]
     scheduled = [
         ScheduledJob(
             record=job,
@@ -253,6 +257,7 @@ def _run_single_model_provider_experiment(
     definition: ExperimentDefinition,
     provider_name: str,
     provider_type: str,
+    provider_spec,
 ) -> None:
     """
     Providers that can only serve one model per instance are cycled: start,
@@ -272,9 +277,9 @@ def _run_single_model_provider_experiment(
         if not model_jobs:
             continue
 
-        options = dict(definition.provider.options)
+        options = dict(provider_spec.options)
         options[model_option_key] = model
-        provider_config = _build_provider_config(definition, provider_name, provider_type, options)
+        provider_config = _build_provider_config(definition, provider_name, provider_type, options, provider_spec)
 
         try:
             provider = create_provider(provider_config)
@@ -321,14 +326,14 @@ def _run_single_model_provider_experiment(
 
 
 def _build_provider_config(
-    definition: ExperimentDefinition, provider_name: str, provider_type: str, options: dict
+    definition: ExperimentDefinition, provider_name: str, provider_type: str, options: dict, provider_spec
 ) -> ProviderConfig:
     return ProviderConfig(
         name=provider_name,
         type=provider_type,
         options=options,
-        keep_alive=definition.provider.keep_alive,
-        supports_concurrency=definition.provider.supports_concurrency,
+        keep_alive=provider_spec.keep_alive,
+        supports_concurrency=provider_spec.supports_concurrency,
     )
 
 
@@ -414,12 +419,15 @@ def _on_job_status_change(
 
 
 def _fail_jobs_for_models(
-    record: ExperimentRecord, models: list[str], error: str, only_pending: bool = False
+    record: ExperimentRecord, models: list[str], error: str, only_pending: bool = False,
+    provider_name: str | None = None,
 ) -> None:
     """Mark every (still-pending) job for the given models as FAILED, without touching other models' jobs."""
     models_set = set(models)
     for job in record.jobs:
         if job.model not in models_set:
+            continue
+        if provider_name is not None and job.provider_name != provider_name:
             continue
         if only_pending and job.status != JobStatus.PENDING:
             continue

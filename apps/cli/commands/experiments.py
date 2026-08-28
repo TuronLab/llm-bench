@@ -28,10 +28,11 @@ def validate(experiment_file: Path = typer.Argument(..., exists=True, help="Path
     except ValidationError as exc:
         error_console.print(f"Invalid experiment file:\n{exc}")
         raise typer.Exit(code=1)
-    n_jobs = len(definition.models) * len(definition.benchmarks)
+    n_jobs = len(definition.providers) * len(definition.models) * len(definition.benchmarks)
     console.print(
         f"[bold green]Valid.[/bold green] '{definition.name}' will run "
-        f"{n_jobs} jobs ({len(definition.models)} models x {len(definition.benchmarks)} benchmarks) "
+        f"{n_jobs} jobs ({len(definition.providers)} providers x {len(definition.models)} models x "
+        f"{len(definition.benchmarks)} benchmarks) "
         f"in {definition.execution.mode.value} mode."
     )
 
@@ -81,7 +82,7 @@ def _interactive_wizard() -> ExperimentDefinition:
 
     return ExperimentDefinition(
         name=name,
-        provider=ProviderSpec(type=provider_type, options=options),
+        providers=[ProviderSpec(type=provider_type, options=options)],
         models=models,
         benchmarks=benchmarks,
         execution=ExecutionConfig(mode=ExecutionMode(mode), workers=workers),

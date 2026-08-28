@@ -4,32 +4,30 @@
 name: quickstart-ollama
 description: "Minimal example benchmarking small Ollama models on two quick generation tasks."
 
-provider:
-  type: ollama
-  options:
-    manage: false
-    host: host.docker.internal
-    port: 11434
-    pull_models:
-      - llama3.2:1b
-      - qwen2.5:0.5b
+providers:
+  - type: ollama
+    options:
+      manage: true
+      pull_models:
+        - llama3.2:1b
+        - qwen2.5:0.5b
 
 models:
   - llama3.2:1b
   - qwen2.5:0.5b
 
 benchmarks:
-  # Chat-completion endpoints do not provide token log-likelihoods, so use
-  # generation tasks rather than multiple-choice tasks such as arc_easy.
+    # Chat-completion endpoints do not provide token log-likelihoods, so use
+    # generation tasks rather than multiple-choice tasks such as arc_easy.
   - gsm8k
   - truthfulqa_gen
 
 execution:
-  mode: sequential
-  workers: 1
+    mode: sequential
+    workers: 1
 
 extra_harness_args:
-  limit: 50                 # small sample for a fast smoke test; remove for full runs
-  # Format prompts with the model's chat template. Recommended for chat/instruction
-  # models; not required solely because the endpoint is OpenAI-compatible.
-  apply_chat_template: true
+    limit: 50                 # small sample for a fast smoke test; remove for full runs
+    # Format prompts with the model's chat template. Recommended for chat/instruction
+    # models; not required solely because the endpoint is OpenAI-compatible.
+    apply_chat_template: true

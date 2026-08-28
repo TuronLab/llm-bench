@@ -1,12 +1,12 @@
 name: smoke-transformers
 description: "Minimal Transformers provider smoke test."
 
-provider:
-  type: huggingface
-  options:
-    model: sshleifer/tiny-gpt2
-    device: cpu
-    dtype: float32
+providers:
+  - type: huggingface
+    options:
+      model: sshleifer/tiny-gpt2
+      device: cpu
+      dtype: float32
 
 models:
   - sshleifer/tiny-gpt2
@@ -15,8 +15,8 @@ benchmarks:
   - gsm8k
 
 execution:
-  mode: sequential
-  workers: 1
+    mode: sequential
+    workers: 1
 
 extra_harness_args:
-  limit: 1
+    limit: 1

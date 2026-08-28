@@ -2,25 +2,22 @@
 name: ollama-load_testing
 description: "Streaming load test for a local Ollama model."
 
-provider:
-  type: ollama
-  options:
-    manage: false
-    host: host.docker.internal
-    port: 11434
-    gpus: false
-    pull_models:
-      - llama3.2:1b
+providers:
+  - type: ollama
+    options:
+      manage: true
+      pull_models:
+        - llama3.2:1b
 
 models:
   - llama3.2:1b
 
 # Benchmarks can be omitted for a load_testing-only experiment.
 load_testing:
-  concurrent_users: [1, 2, 4, 8]
-  # The backend reads this UTF-8 Markdown file once before starting the burst.
-  input: "file://./experiments/inputs/load-testing-long-prompt.md"
-  max_output_tokens: 128
-  requests_per_user: 2
-  temperature: 0
-  timeout_seconds: 120
+    concurrent_users: [1, 2, 4, 8]
+    # The backend reads this UTF-8 Markdown file once before starting the burst.
+    input: "file://./experiments/inputs/load-testing-long-prompt.md"
+    max_output_tokens: 128
+    requests_per_user: 2
+    temperature: 0
+    timeout_seconds: 120

@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 def _new_id() -> str:
@@ -72,12 +72,32 @@ class ExperimentDefinition(BaseModel):
 
     name: str
     description: Optional[str] = None
-    provider: ProviderSpec
+    providers: list[ProviderSpec] = Field(default_factory=list, min_length=1)
+    # Accepted only for backwards compatibility with definitions created
+    # before providers became a list. New YAML should use `providers`.
+    provider: Optional[ProviderSpec] = Field(default=None, exclude=True)
     models: list[str]
     benchmarks: list[str] = Field(default_factory=list)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
     extra_harness_args: dict[str, Any] = Field(default_factory=dict)
     load_testing: Optional[LoadTestingConfig] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_provider(cls, values: Any) -> Any:
+        if isinstance(values, dict) and not values.get("providers") and values.get("provider"):
+            values = dict(values)
+            values["providers"] = [values["provider"]]
+        return values
+
+    @model_validator(mode="after")
+    def set_legacy_provider(self) -> "ExperimentDefinition":
+        if self.provider is None:
+            self.provider = self.providers[0]
+        names = [provider.name or provider.type for provider in self.providers]
+        if len(names) != len(set(names)):
+            raise ValueError("Provider names must be unique within an experiment")
+        return self
 
 
 class JobRecord(BaseModel):
