@@ -25,7 +25,7 @@ export default function ExperimentBuilder() {
   const [benchmarkFilter, setBenchmarkFilter] = useState("");
   const [selectedBenchmarks, setSelectedBenchmarks] = useState([]);
   const [harnessLimit, setHarnessLimit] = useState("");
-  const [applyChatTemplate, setApplyChatTemplate] = useState(false);
+  const [applyChatTemplate, setApplyChatTemplate] = useState(true);
   const [extraHarnessArgs, setExtraHarnessArgs] = useState("");
   const [mode, setMode] = useState("sequential");
   const [workers, setWorkers] = useState(2);
