@@ -1,7 +1,7 @@
 """
 File-backed persistence for benchmark results.
 
-Layout: `results/<sanitized-model-name>.json`, containing a list of
+Layout: `results/benchmarks/<sanitized-model-name>.json`, containing a list of
 `BenchmarkResult` entries that accumulate across runs. Results are never
 overwritten implicitly -- a rerun of the same (model, benchmark) pair is
 appended as a new entry, timestamped, so history is preserved. Callers that
@@ -18,7 +18,7 @@ import threading
 from pathlib import Path
 from typing import Optional
 
-from infrastructure.storage.paths import RESULTS_DIR, ensure_directories
+from infrastructure.storage.paths import BENCHMARK_RESULTS_DIR, ensure_directories
 from infrastructure.storage.schemas import BenchmarkResult
 
 logger = logging.getLogger("benchlab.storage.results")
@@ -33,7 +33,7 @@ def sanitize_model_name(model: str) -> str:
 class ResultStore:
     def __init__(self, directory: Optional[Path] = None):
         ensure_directories()
-        self._dir = directory or RESULTS_DIR
+        self._dir = directory or BENCHMARK_RESULTS_DIR
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
 

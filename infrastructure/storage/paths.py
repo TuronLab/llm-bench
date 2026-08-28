@@ -17,6 +17,7 @@ PROJECT_ROOT = Path(os.environ.get("BENCHLAB_ROOT", Path(__file__).resolve().par
 
 EXPERIMENTS_DIR = Path(os.environ.get("BENCHLAB_EXPERIMENTS_DIR", PROJECT_ROOT / "experiments"))
 RESULTS_DIR = Path(os.environ.get("BENCHLAB_RESULTS_DIR", PROJECT_ROOT / "results"))
+BENCHMARK_RESULTS_DIR = Path(os.environ.get("BENCHLAB_BENCHMARK_RESULTS_DIR", RESULTS_DIR / "benchmarks"))
 LOAD_TESTING_RESULTS_DIR = Path(os.environ.get("BENCHLAB_LOAD_TESTING_RESULTS_DIR", RESULTS_DIR / "load_testing"))
 LOGS_DIR = Path(os.environ.get("BENCHLAB_LOGS_DIR", PROJECT_ROOT / "logs"))
 CONFIGS_DIR = Path(os.environ.get("BENCHLAB_CONFIGS_DIR", PROJECT_ROOT / "infrastructure" / "configs"))
@@ -27,5 +28,5 @@ STATE_DB_PATH = Path(os.environ.get("BENCHLAB_STATE_DB", EXPERIMENTS_DIR / ".sta
 
 
 def ensure_directories() -> None:
-    for path in (EXPERIMENTS_DIR, RESULTS_DIR, LOAD_TESTING_RESULTS_DIR, LOGS_DIR, CONFIGS_DIR, STATE_DB_PATH.parent):
+    for path in (EXPERIMENTS_DIR, RESULTS_DIR, BENCHMARK_RESULTS_DIR, LOAD_TESTING_RESULTS_DIR, LOGS_DIR, CONFIGS_DIR, STATE_DB_PATH.parent):
         path.mkdir(parents=True, exist_ok=True)

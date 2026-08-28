@@ -139,7 +139,8 @@ infrastructure/       Adapters and operational assets
   docker/             Dockerfiles and nginx configuration
   templates/          Experiment template
 experiments/          Example definitions and persisted experiment records
-results/              Persisted benchmark results
+results/              Persisted results
+  benchmarks/         Persisted benchmark results
 logs/                 Per-job logs
 tests/                Scheduler and experiment regression tests
 ```
@@ -169,7 +170,7 @@ The CLI is a REST client: it expects an API service at `BENCHLAB_API_URL` (defau
 
 ```text
 experiments/<id>.json       experiment definition, jobs, and status
-results/<model>.json        historical result entries for that model
+results/benchmarks/<model>.json historical benchmark result entries for that model
 logs/<experiment>/<job>.log lm-evaluation-harness output
 ```
 
@@ -179,6 +180,7 @@ Path overrides use `BENCHLAB_EXPERIMENTS_DIR`, `BENCHLAB_RESULTS_DIR`, and `BENC
 
 - [Architecture and execution model](docs/architecture.md)
 - [Providers and experiment definitions](docs/providers.md)
+- [Load testing metrics and request execution](docs/load_testing.md)
 - [Supported benchmarks](docs/benchmarks.md)
 - [Experiment template](infrastructure/templates/experiment_template.yaml)
 - [Quickstart experiment](experiments/examples/quickstart.yaml)
