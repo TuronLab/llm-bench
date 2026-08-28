@@ -1,3 +1,9 @@
+
+
+<p align="center">
+  <img src="docs/assets/logo.png" alt="LLM Benchmarking Framework" width="350">
+</p>
+
 # LLM Benchmarking Framework
 
 Self-hosted framework for evaluating LLM deployments across inference backends.
