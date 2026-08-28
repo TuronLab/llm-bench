@@ -164,7 +164,7 @@ must be checked against the installed harness version and task requirements.
 
 An experiment can also measure streamed chat-completion performance while the
 number of simultaneous virtual users increases. Add a `load_testing` section;
-each value in `users` creates one load-test job for each model. `input` is sent
+each value in `concurrent_users` creates one load-test job for each model. `input` is sent
 by every virtual user and `max_output_tokens` limits each response. The input
 can be literal text or a `file://` URI. Files are read as UTF-8 before the test
 starts, so every request uses exactly the same contents. Use
@@ -176,7 +176,7 @@ running the experiment (normally the backend container).
 models:
   - llama3.2:1b
 load_testing:
-  users: [1, 2, 4, 8]
+  concurrent_users: [1, 2, 4, 8]
   input: "file://./experiments/inputs/transformers.md"
   max_output_tokens: 128
   requests_per_user: 2

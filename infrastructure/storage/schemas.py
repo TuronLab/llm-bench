@@ -57,9 +57,9 @@ class ProviderSpec(BaseModel):
 
 
 class LoadTestingConfig(BaseModel):
-    """Load-test settings. Each entry in ``users`` becomes one job per model."""
+    """Load-test settings. Each entry in ``concurrent_users`` becomes one job per model."""
 
-    users: list[Annotated[int, Field(ge=1)]] = Field(..., min_length=1, description="Concurrent users to test")
+    concurrent_users: list[Annotated[int, Field(ge=1)]] = Field(..., min_length=1, description="Concurrent users to test")
     input: str = Field(..., min_length=1, description="Prompt text or file:// URI to a UTF-8 .txt/.md file")
     max_output_tokens: int = Field(default=128, ge=1)
     requests_per_user: int = Field(default=1, ge=1)
@@ -147,7 +147,7 @@ class LoadTestingResult(BaseModel):
 
     model: str
     provider: str
-    users: int
+    concurrent_users: int
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     input: str
     prompt: str = ""

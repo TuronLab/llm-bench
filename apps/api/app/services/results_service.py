@@ -37,5 +37,5 @@ def load_testing_results() -> list[dict]:
     """Latest load-test result for every model/provider/concurrency combination."""
     return [result.model_dump(mode="json") for result in load_testing_store.latest()]
 
-def delete_load_testing_result(model: str, provider: str, users: int, timestamp: str) -> bool:
-    return load_testing_store.delete(model, provider, users, timestamp)
+def delete_load_testing_result(model: str, provider: str, concurrent_users: int, timestamp: str) -> bool:
+    return load_testing_store.delete(model, provider, concurrent_users, timestamp)

@@ -106,11 +106,11 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
                 experiment_id="",
                 provider_name=provider_name,
                 model=model,
-                benchmark=f"load_testing-{users}",
+                benchmark=f"load_testing-{concurrent_users}",
                 kind="load_testing",
             )
             for model in definition.models
-            for users in definition.load_testing.users
+            for concurrent_users in definition.load_testing.concurrent_users
         )
     record = ExperimentRecord(definition=definition, status=ExperimentStatus.DRAFT, jobs=jobs)
     for job in record.jobs:
@@ -351,9 +351,9 @@ def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentD
         if job.kind == "load_testing":
             if definition.load_testing is None:  # Defensive: persisted malformed job.
                 raise RuntimeError("LoadTesting job is missing its configuration")
-            users = int(job.benchmark.removeprefix("load_testing-"))
+            concurrent_users = int(job.benchmark.removeprefix("load_testing-"))
             result = run_load_testing_test(
-                provider=provider, model=job.model, config=definition.load_testing, users=users
+                provider=provider, model=job.model, config=definition.load_testing, concurrent_users=concurrent_users
             )
             path = load_testing_store.append(result)
             job.result_path = str(path)

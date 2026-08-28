@@ -18,17 +18,17 @@ from infrastructure.storage.schemas import LoadTestingConfig, LoadTestingResult
 from core.runner.harness_runner import _resources, metric_provider_options
 
 
-def run_load_testing_test(provider: Provider, model: str, config: LoadTestingConfig, users: int) -> LoadTestingResult:
+def run_load_testing_test(provider: Provider, model: str, config: LoadTestingConfig, concurrent_users: int) -> LoadTestingResult:
     """Run a burst of concurrent streaming requests and summarize its performance."""
     endpoint = provider.endpoint().rstrip("/")
     if not endpoint:
         raise ProviderError("LoadTesting tests require a provider with an OpenAI-compatible HTTP endpoint")
     input_text = _load_input(config.input)
 
-    total_requests = users * config.requests_per_user
+    total_requests = concurrent_users * config.requests_per_user
     start_gate = threading.Event()
     started = time.monotonic()
-    with ThreadPoolExecutor(max_workers=users) as executor:
+    with ThreadPoolExecutor(max_workers=concurrent_users) as executor:
         futures = [
             executor.submit(_stream_request, provider, endpoint, model, config, input_text, start_gate)
             for _ in range(total_requests)
@@ -74,7 +74,7 @@ def run_load_testing_test(provider: Provider, model: str, config: LoadTestingCon
     return LoadTestingResult(
         model=model,
         provider=provider.config.name,
-        users=users,
+        concurrent_users=concurrent_users,
         input=config.input,
         prompt=input_text,
         input_filename=Path(unquote(urlparse(config.input).path)).name if config.input.startswith("file://") else None,

@@ -40,9 +40,9 @@ def get_detailed_result(model: str, benchmark: str):
         )
     return result
 
-@router.delete("/load_testing/{model}/{provider}/{users}")
-def delete_load_testing_result(model: str, provider: str, users: int, timestamp: str):
-    if not results_service.delete_load_testing_result(model, provider, users, timestamp):
+@router.delete("/load_testing/{model}/{provider}/{concurrent_users}")
+def delete_load_testing_result(model: str, provider: str, concurrent_users: int, timestamp: str):
+    if not results_service.delete_load_testing_result(model, provider, concurrent_users, timestamp):
         raise HTTPException(status_code=404, detail="Result not found")
     return {"deleted": True}
 

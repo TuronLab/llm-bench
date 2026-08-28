@@ -15,7 +15,7 @@ models:
 
 # Benchmarks can be omitted for a load_testing-only experiment.
 load_testing:
-  users: [1, 2, 4, 8]
+  concurrent_users: [1, 2, 4, 8]
   # The backend reads this UTF-8 Markdown file once before starting the burst.
   input: "file://./experiments/inputs/load_testing-long-prompt.md"
   max_output_tokens: 128

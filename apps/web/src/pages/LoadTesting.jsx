@@ -31,7 +31,7 @@ function MetricHelp() {
       <dt>Total output tok/s</dt><dd>Total output tokens per second across all requests at that concurrency level. It measures the effective serving capacity under load.</dd>
       <dt>Perceived tok/s</dt><dd>Average tokens per second perceived by the user for each individual response, measured from the first token to the last.</dd>
       <dt>Errors</dt><dd>Failed requests relative to the total, displayed as failed/total.</dd>
-      <dt>users</dt><dd>Number of requests kept active simultaneously at that load level.</dd>
+      <dt>concurrent_users</dt><dd>Number of requests kept active simultaneously at that load level.</dd>
     </dl>
     <p className="metric-note">(*) indicates that the token count was estimated because the provider did not report actual usage.</p>
   </details>;
@@ -46,17 +46,17 @@ export default function LoadTesting() {
     api.getLoadTestingResults().then(setData).catch((e) => setError(e.message));
   }, []);
 
-  const { users, rows: unsortedRows } = useMemo(() => {
+  const { concurrentUsers, rows: unsortedRows } = useMemo(() => {
     const results = data?.results || [];
-    const levels = [...new Set(results.map((result) => result.users))].sort((a, b) => a - b);
+    const levels = [...new Set(results.map((result) => result.concurrent_users))].sort((a, b) => a - b);
     const grouped = new Map();
     results.forEach((result) => {
       const signature = JSON.stringify(result.metadata || {});
       const key = `${result.model}\u0000${result.provider}\u0000${signature}`;
       if (!grouped.has(key)) grouped.set(key, { model: result.model, provider: result.provider, metadata: result.metadata || {}, values: {} });
-      grouped.get(key).values[result.users] = result;
+      grouped.get(key).values[result.concurrent_users] = result;
     });
-    return { users: levels, rows: [...grouped.values()].sort((a, b) => a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider)) };
+    return { concurrentUsers: levels, rows: [...grouped.values()].sort((a, b) => a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider)) };
   }, [data]);
 
   const toggleSort = (key) => setSort((current) => ({
@@ -98,8 +98,7 @@ export default function LoadTesting() {
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="load_testing-table">
           <thead>
-            <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2">Provider</th><th rowSpan="2">Metadata</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
-            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header metric-group-start" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
+            <tr>{concurrentUsers.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header metric-group-start" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
             {groupedRows.map((row) => {
