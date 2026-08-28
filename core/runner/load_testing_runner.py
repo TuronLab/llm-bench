@@ -82,13 +82,13 @@ def run_load_testing_test(provider: Provider, model: str, config: LoadTestingCon
         input=config.input,
         prompt=input_text,
         input_filename=Path(unquote(urlparse(config.input).path)).name if config.input.startswith("file://") else None,
-        max_output_tokens=config.max_output_tokens,
+        max_output_tokens=generation["max_tokens"],
         requests_per_user=config.requests_per_user,
         provider_options=safe_options,
         metadata={
             "common": {key: value for key, value in {
                 "device": device,
-                "max_output_tokens": config.max_output_tokens,
+                "max_output_tokens": generation["max_tokens"],
                 "requests_per_user": config.requests_per_user,
                 "temperature": generation["temperature"],
                 "timeout_seconds": config.timeout_seconds,

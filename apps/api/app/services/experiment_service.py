@@ -377,9 +377,16 @@ def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentD
             if definition.load_testing is None:  # Defensive: persisted malformed job.
                 raise RuntimeError("LoadTesting job is missing its configuration")
             concurrent_users = int(job.benchmark.removeprefix("load_testing-"))
+            load_generation = definition.generation.model_dump(exclude_none=True)
+            # Load-test-specific controls take precedence when explicitly
+            # configured. Defaults are not considered an override.
+            if "temperature" in definition.load_testing.model_fields_set:
+                load_generation["temperature"] = definition.load_testing.temperature
+            if "max_output_tokens" in definition.load_testing.model_fields_set:
+                load_generation["max_tokens"] = definition.load_testing.max_output_tokens
             result = run_load_testing_test(
                 provider=provider, model=job.model, config=definition.load_testing,
-                concurrent_users=concurrent_users, generation=definition.generation.model_dump(exclude_none=True)
+                concurrent_users=concurrent_users, generation=load_generation
             )
             path = load_testing_store.append(result)
             job.result_path = str(path)

@@ -31,6 +31,12 @@ generation:
 file, it is read once before the burst starts, so every request uses the same
 prompt. `max_output_tokens` is passed to the provider as `max_tokens`.
 
+> **Warning:** Values explicitly configured in `load_testing` override the
+> corresponding values in the experiment-level `generation` block. Therefore,
+> `load_testing.temperature` overrides `generation.temperature`, and
+> `load_testing.max_output_tokens` overrides `generation.max_tokens`. If they
+> are omitted, the experiment-level generation values are used.
+
 For a given concurrency level:
 
 ```text

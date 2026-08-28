@@ -33,3 +33,9 @@ The available parameters are:
 For a fair comparison, use the same generation settings for every provider and
 model whenever the providers implement them consistently. Provider-specific
 serving options remain under each entry in `providers[].options`.
+
+> **Warning:** For load tests, values explicitly set inside `load_testing` take
+> precedence over the corresponding values in `generation`. In particular,
+> `load_testing.temperature` overrides `generation.temperature`, and
+> `load_testing.max_output_tokens` overrides `generation.max_tokens`. If those
+> load-testing fields are omitted, the values from `generation` are used.
