@@ -160,6 +160,9 @@ input, select, textarea {
 }
 
 label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; margin-top: 14px; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+.checkbox-label input { width: auto; }
+.field-help { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
 
 .wizard-steps {
   display: flex;

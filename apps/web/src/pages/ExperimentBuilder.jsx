@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 
-const STEPS = ["Provider", "Models", "Benchmarks", "Execution", "Review"];
+const STEPS = ["Provider", "Models", "Benchmarks", "Load testing", "Review"];
+const FALLBACK_BENCHMARKS = [
+  "mmlu", "gsm8k", "truthfulqa_mc2", "arc_challenge", "arc_easy",
+  "hellaswag", "winogrande", "piqa", "boolq", "openbookqa",
+  "humaneval", "bbh", "gpqa", "ifeval",
+];
 
 export default function ExperimentBuilder() {
   const navigate = useNavigate();
@@ -21,13 +26,25 @@ export default function ExperimentBuilder() {
   const [selectedBenchmarks, setSelectedBenchmarks] = useState([]);
   const [mode, setMode] = useState("sequential");
   const [workers, setWorkers] = useState(2);
+  const [loadTestingEnabled, setLoadTestingEnabled] = useState(false);
+  const [concurrentUsers, setConcurrentUsers] = useState("1, 2, 4, 8");
+  const [loadTestingInput, setLoadTestingInput] = useState("");
+  const [maxOutputTokens, setMaxOutputTokens] = useState(128);
+  const [requestsPerUser, setRequestsPerUser] = useState(1);
+  const [temperature, setTemperature] = useState(0);
+  const [timeoutSeconds, setTimeoutSeconds] = useState(120);
 
   useEffect(() => {
     api.listProviders().then((d) => {
       setProvidersData(d);
       setProviderType(d.types[0]);
     }).catch((e) => setError(e.message));
-    api.listBenchmarks().then((d) => setBenchmarksList(d.benchmarks)).catch((e) => setError(e.message));
+    // Keep the selector useful during a temporary API/proxy outage. The API
+    // normally returns the complete harness registry; this curated fallback
+    // mirrors the backend's fallback list.
+    api.listBenchmarks()
+      .then((d) => setBenchmarksList(d.benchmarks || FALLBACK_BENCHMARKS))
+      .catch(() => setBenchmarksList(FALLBACK_BENCHMARKS));
   }, []);
 
   if (!providersData) return <div className="panel">{error || "Loading..."}</div>;
@@ -54,10 +71,23 @@ export default function ExperimentBuilder() {
     .filter((b) => b.toLowerCase().includes(benchmarkFilter.toLowerCase()))
     .slice(0, 60);
 
+  const parsedConcurrentUsers = concurrentUsers
+    .split(",")
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  const hasValidLoadTesting = loadTestingEnabled
+    && parsedConcurrentUsers.length > 0
+    && parsedConcurrentUsers.length === concurrentUsers.split(",").filter((value) => value.trim()).length
+    && Boolean(loadTestingInput.trim())
+    && Number(maxOutputTokens) > 0
+    && Number(requestsPerUser) > 0
+    && Number(temperature) >= 0
+    && Number(timeoutSeconds) > 0;
+
   const canProceed = () => {
     if (step === 0) return Boolean(name.trim()) && Boolean(providerType);
     if (step === 1) return models.length > 0;
-    if (step === 2) return selectedBenchmarks.length > 0;
+    if (step === 3) return selectedBenchmarks.length > 0 || hasValidLoadTesting;
     return true;
   };
 
@@ -71,6 +101,14 @@ export default function ExperimentBuilder() {
         models,
         benchmarks: selectedBenchmarks,
         execution: { mode, workers: mode === "parallel" ? Number(workers) : 1 },
+        load_testing: loadTestingEnabled ? {
+          concurrent_users: parsedConcurrentUsers,
+          input: loadTestingInput.trim(),
+          max_output_tokens: Number(maxOutputTokens),
+          requests_per_user: Number(requestsPerUser),
+          temperature: Number(temperature),
+          timeout_seconds: Number(timeoutSeconds),
+        } : undefined,
       };
       const record = await api.createExperiment(definition);
       await api.runExperiment(record.id);
@@ -181,11 +219,8 @@ export default function ExperimentBuilder() {
                 </span>
               ))}
             </div>
-          </div>
-        )}
 
-        {step === 3 && (
-          <div>
+            <h2>Execution</h2>
             <label>Execution mode</label>
             <select value={mode} onChange={(e) => setMode(e.target.value)}>
               <option value="sequential">Sequential</option>
@@ -195,6 +230,48 @@ export default function ExperimentBuilder() {
               <div>
                 <label>Worker count</label>
                 <input type="number" min={1} value={workers} onChange={(e) => setWorkers(e.target.value)} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 3 && (
+          <div>
+            <label className="checkbox-label">
+              <input type="checkbox" checked={loadTestingEnabled} onChange={(e) => setLoadTestingEnabled(e.target.checked)} />
+              Run a streaming load test alongside this experiment
+            </label>
+            <p className="subtitle">Measure response latency and throughput as the number of concurrent users grows.</p>
+
+            {loadTestingEnabled && (
+              <div>
+                <label>Concurrent users *</label>
+                <input
+                  value={concurrentUsers}
+                  onChange={(e) => setConcurrentUsers(e.target.value)}
+                  placeholder="e.g. 1, 2, 4, 8"
+                />
+                <p className="field-help">Enter one or more positive whole numbers, separated by commas.</p>
+
+                <label>Input prompt or file URI *</label>
+                <textarea
+                  rows="4"
+                  value={loadTestingInput}
+                  onChange={(e) => setLoadTestingInput(e.target.value)}
+                  placeholder="Prompt text, or file://./experiments/inputs/prompt.md"
+                />
+
+                <label>Maximum output tokens</label>
+                <input type="number" min={1} value={maxOutputTokens} onChange={(e) => setMaxOutputTokens(e.target.value)} />
+
+                <label>Requests per user</label>
+                <input type="number" min={1} value={requestsPerUser} onChange={(e) => setRequestsPerUser(e.target.value)} />
+
+                <label>Temperature</label>
+                <input type="number" min={0} step="0.1" value={temperature} onChange={(e) => setTemperature(e.target.value)} />
+
+                <label>Timeout (seconds)</label>
+                <input type="number" min={0.1} step="0.1" value={timeoutSeconds} onChange={(e) => setTimeoutSeconds(e.target.value)} />
               </div>
             )}
           </div>
@@ -210,7 +287,8 @@ export default function ExperimentBuilder() {
                 <tr><th>Models</th><td>{models.join(", ")}</td></tr>
                 <tr><th>Benchmarks</th><td>{selectedBenchmarks.join(", ")}</td></tr>
                 <tr><th>Execution</th><td>{mode}{mode === "parallel" ? ` (${workers} workers)` : ""}</td></tr>
-                <tr><th>Total jobs</th><td>{models.length * selectedBenchmarks.length}</td></tr>
+                <tr><th>Load testing</th><td>{loadTestingEnabled ? `${parsedConcurrentUsers.join(", ")} concurrent users` : "Not included"}</td></tr>
+                <tr><th>Total jobs</th><td>{models.length * (selectedBenchmarks.length + (loadTestingEnabled ? parsedConcurrentUsers.length : 0))}</td></tr>
               </tbody>
             </table>
           </div>
