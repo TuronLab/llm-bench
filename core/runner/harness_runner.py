@@ -137,6 +137,12 @@ def build_command(
         if isinstance(value, bool):
             if value:
                 cmd.append(flag)
+        elif key == "gen_kw" and isinstance(value, dict):
+            # lm-evaluation-harness expects gen_kw as a comma-separated
+            # string (for example: temperature=0,top_p=1), not Python's
+            # dictionary representation.
+            gen_kw = ",".join(f"{arg_key}={arg_value}" for arg_key, arg_value in value.items())
+            cmd.extend([flag, gen_kw])
         else:
             cmd.extend([flag, str(value)])
     return cmd

@@ -378,18 +378,22 @@ def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentD
                 raise RuntimeError("LoadTesting job is missing its configuration")
             concurrent_users = int(job.benchmark.removeprefix("load_testing-"))
             result = run_load_testing_test(
-                provider=provider, model=job.model, config=definition.load_testing, concurrent_users=concurrent_users
+                provider=provider, model=job.model, config=definition.load_testing,
+                concurrent_users=concurrent_users, generation=definition.generation.model_dump(exclude_none=True)
             )
             path = load_testing_store.append(result)
             job.result_path = str(path)
             return
+        benchmark_args = dict(definition.extra_harness_args)
+        generation = definition.generation.model_dump(exclude_none=True)
+        benchmark_args["gen_kw"] = {**generation, **benchmark_args.get("gen_kw", {})}
         result = run_benchmark(
             provider=provider,
             model=job.model,
             benchmark=job.benchmark,
             experiment_id=job.experiment_id,
             job_id=job.id,
-            extra_args=definition.extra_harness_args,
+            extra_args=benchmark_args,
         )
         path = result_store.append(result)
         job.result_path = str(path)

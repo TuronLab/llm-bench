@@ -156,7 +156,7 @@ extra_harness_args:
 ```
 
 For a normal final comparison, remove `limit` (or use the same value for every
-candidate). Other harness options such as `seed`, `gen_kwargs`, `include_path`,
+candidate). Other harness options such as `seed`, `gen_kw`, `include_path`,
 and `trust_remote_code` may be useful depending on the task and provider, but
 must be checked against the installed harness version and task requirements.
 

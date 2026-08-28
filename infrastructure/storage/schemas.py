@@ -67,6 +67,17 @@ class LoadTestingConfig(BaseModel):
     timeout_seconds: float = Field(default=120, gt=0)
 
 
+class GenerationConfig(BaseModel):
+    """Common generation parameters passed to providers when supported."""
+
+    temperature: float | None = Field(default=None, ge=0)
+    top_p: float | None = Field(default=None, gt=0, le=1)
+    max_tokens: int | None = Field(default=None, ge=1)
+    frequency_penalty: float | None = Field(default=None, ge=-2, le=2)
+    presence_penalty: float | None = Field(default=None, ge=-2, le=2)
+    seed: int | None = None
+
+
 class ExperimentDefinition(BaseModel):
     """The declarative, user-authored description of an experiment (maps 1:1 to the YAML format)."""
 
@@ -80,6 +91,7 @@ class ExperimentDefinition(BaseModel):
     benchmarks: list[str] = Field(default_factory=list)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
     extra_harness_args: dict[str, Any] = Field(default_factory=dict)
+    generation: GenerationConfig = Field(default_factory=GenerationConfig)
     load_testing: Optional[LoadTestingConfig] = None
 
     @model_validator(mode="before")

@@ -22,6 +22,16 @@ benchmarks:
   - gsm8k
   - truthfulqa_gen
 
+# Optional generation settings. Omitted fields use the provider/tool default
+# and are not shown in the result's extra_conf.
+generation:
+  temperature: 0
+  top_p: 1
+  max_tokens: 128
+  frequency_penalty: 0
+  presence_penalty: 0
+  seed: 42
+
 execution:
     mode: sequential
     workers: 1

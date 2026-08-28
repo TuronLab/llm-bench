@@ -39,6 +39,15 @@ providers:
       host: host.docker.internal
       port: 11434
 
+# Optional
+generation:
+  temperature: 0
+  top_p: 1
+  max_tokens: 128
+  frequency_penalty: 0
+  presence_penalty: 0
+  seed: 42
+
 models:
   - llama3.2:1b
 
@@ -47,7 +56,7 @@ benchmarks:
 
 load_testing:
   concurrent_users: [1, 2, 4]
-  input: "Tell me a short story about a robot."
+  input: "Tell me a short story about a robot."  # You can also refer to a `txt` or `md` file with the prefix `file`. For example "file://path/to/md"
   max_output_tokens: 64
   requests_per_user: 5
 ```
@@ -150,6 +159,9 @@ load_testing:
 
 See [load testing](docs/load_testing.md) for the full configuration, metrics, and
 interpretation guidelines.
+
+Generation parameters such as temperature, nucleus sampling, token limits, and
+penalties are documented in [generation settings](docs/generation.md).
 
 ## How it works
 

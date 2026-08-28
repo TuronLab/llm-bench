@@ -18,19 +18,21 @@ from infrastructure.storage.schemas import LoadTestingConfig, LoadTestingResult
 from core.runner.harness_runner import _resources, metric_provider_options
 
 
-def run_load_testing_test(provider: Provider, model: str, config: LoadTestingConfig, concurrent_users: int) -> LoadTestingResult:
+def run_load_testing_test(provider: Provider, model: str, config: LoadTestingConfig, concurrent_users: int, generation=None) -> LoadTestingResult:
     """Run a burst of concurrent streaming requests and summarize its performance."""
     endpoint = provider.endpoint().rstrip("/")
     if not endpoint:
         raise ProviderError("LoadTesting tests require a provider with an OpenAI-compatible HTTP endpoint")
     input_text = _load_input(config.input)
+    configured_generation = {key: value for key, value in (generation or {}).items() if value is not None}
+    generation = {"temperature": config.temperature, "top_p": 1, "max_tokens": config.max_output_tokens, **configured_generation}
 
     total_requests = concurrent_users * config.requests_per_user
     start_gate = threading.Event()
     started = time.monotonic()
     with ThreadPoolExecutor(max_workers=concurrent_users) as executor:
         futures = [
-            executor.submit(_stream_request, provider, endpoint, model, config, input_text, start_gate)
+            executor.submit(_stream_request, provider, endpoint, model, config, input_text, start_gate, generation)
             for _ in range(total_requests)
         ]
         start_gate.set()
@@ -69,6 +71,8 @@ def run_load_testing_test(provider: Provider, model: str, config: LoadTestingCon
         resources = _resources()
         device = resources.get("gpu") or resources.get("cpu") or "unknown"
     extra_conf = {"input": config.input}
+    if configured_generation:
+        extra_conf["generation"] = configured_generation
     if safe_options:
         extra_conf["provider_options"] = safe_options
     return LoadTestingResult(
@@ -86,7 +90,7 @@ def run_load_testing_test(provider: Provider, model: str, config: LoadTestingCon
                 "device": device,
                 "max_output_tokens": config.max_output_tokens,
                 "requests_per_user": config.requests_per_user,
-                "temperature": config.temperature,
+                "temperature": generation["temperature"],
                 "timeout_seconds": config.timeout_seconds,
             }.items() if value not in {0, 1, 128, 120}},
             "extra_conf": extra_conf,
@@ -115,14 +119,15 @@ def _load_input(value: str) -> str:
         raise ProviderError(f"Could not read load_testing input file '{path}': {exc}") from exc
 
 
-def _stream_request(provider: Provider, endpoint: str, model: str, config: LoadTestingConfig, input_text: str, start_gate: threading.Event) -> dict[str, Any]:
+def _stream_request(provider: Provider, endpoint: str, model: str, config: LoadTestingConfig, input_text: str, start_gate: threading.Event, generation: dict[str, Any]) -> dict[str, Any]:
     start_gate.wait()
     headers = {"Authorization": f"Bearer {provider.api_key()}"} if provider.api_key() else {}
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": input_text}],
-        "max_tokens": config.max_output_tokens,
-        "temperature": config.temperature,
+        "max_tokens": generation["max_tokens"],
+        "temperature": generation["temperature"],
+        **{key: value for key, value in generation.items() if key not in {"temperature", "max_tokens"}},
         "stream": True,
         "stream_options": {"include_usage": True},
     }
