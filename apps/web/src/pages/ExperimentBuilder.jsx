@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 
-const STEPS = ["Provider", "Models", "Benchmarks", "Load testing", "Review"];
+const STEPS = ["Provider", "Benchmarks", "Load testing", "Review"];
 const FALLBACK_BENCHMARKS = [
   "mmlu", "gsm8k", "truthfulqa_mc2", "arc_challenge", "arc_easy",
   "hellaswag", "winogrande", "piqa", "boolq", "openbookqa",
@@ -24,6 +24,9 @@ export default function ExperimentBuilder() {
   const [models, setModels] = useState([]);
   const [benchmarkFilter, setBenchmarkFilter] = useState("");
   const [selectedBenchmarks, setSelectedBenchmarks] = useState([]);
+  const [harnessLimit, setHarnessLimit] = useState("");
+  const [applyChatTemplate, setApplyChatTemplate] = useState(false);
+  const [extraHarnessArgs, setExtraHarnessArgs] = useState("");
   const [mode, setMode] = useState("sequential");
   const [workers, setWorkers] = useState(2);
   const [loadTestingEnabled, setLoadTestingEnabled] = useState(false);
@@ -85,9 +88,8 @@ export default function ExperimentBuilder() {
     && Number(timeoutSeconds) > 0;
 
   const canProceed = () => {
-    if (step === 0) return Boolean(name.trim()) && Boolean(providerType);
-    if (step === 1) return models.length > 0;
-    if (step === 3) return selectedBenchmarks.length > 0 || hasValidLoadTesting;
+    if (step === 0) return Boolean(name.trim()) && Boolean(providerType) && models.length > 0;
+    if (step === 2) return selectedBenchmarks.length > 0 || hasValidLoadTesting;
     return true;
   };
 
@@ -95,12 +97,25 @@ export default function ExperimentBuilder() {
     setSubmitting(true);
     setError(null);
     try {
+      let additionalArgs = {};
+      if (extraHarnessArgs.trim()) {
+        additionalArgs = JSON.parse(extraHarnessArgs);
+        if (!additionalArgs || Array.isArray(additionalArgs) || typeof additionalArgs !== "object") {
+          throw new Error("Additional harness arguments must be a JSON object.");
+        }
+      }
+      const harnessArgs = {
+        ...(harnessLimit !== "" ? { limit: Number(harnessLimit) } : {}),
+        ...(applyChatTemplate ? { apply_chat_template: true } : {}),
+        ...additionalArgs,
+      };
       const definition = {
         name,
         provider: { type: providerType, options: providerOptions },
         models,
         benchmarks: selectedBenchmarks,
         execution: { mode, workers: mode === "parallel" ? Number(workers) : 1 },
+        extra_harness_args: harnessArgs,
         load_testing: loadTestingEnabled ? {
           concurrent_users: parsedConcurrentUsers,
           input: loadTestingInput.trim(),
@@ -146,7 +161,7 @@ export default function ExperimentBuilder() {
               ))}
             </select>
 
-            {fields.map((field) => (
+            {fields.filter((field) => field.key !== "model" && field.key !== "model_path").map((field) => (
               <div key={field.key}>
                 <label>{field.label}{field.required ? " *" : ""}</label>
                 {field.type === "boolean" ? (
@@ -166,18 +181,14 @@ export default function ExperimentBuilder() {
                 )}
               </div>
             ))}
-          </div>
-        )}
 
-        {step === 1 && (
-          <div>
-            <label>Add model (id, path, or tag depending on provider)</label>
+            <label style={{ marginTop: 20 }}>Models to test *</label>
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 value={modelInput}
                 onChange={(e) => setModelInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addModel()}
-                placeholder="e.g. llama3:8b"
+                placeholder="Model id, path, or tag"
               />
               <button type="button" onClick={addModel}>Add</button>
             </div>
@@ -192,7 +203,7 @@ export default function ExperimentBuilder() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 1 && (
           <div>
             <label>Search benchmarks</label>
             <input value={benchmarkFilter} onChange={(e) => setBenchmarkFilter(e.target.value)} placeholder="e.g. mmlu" />
@@ -232,10 +243,31 @@ export default function ExperimentBuilder() {
                 <input type="number" min={1} value={workers} onChange={(e) => setWorkers(e.target.value)} />
               </div>
             )}
+
+            <label style={{ marginTop: 20 }}>Number of benchmark samples</label>
+            <input
+              type="number"
+              min={1}
+              value={harnessLimit}
+              onChange={(e) => setHarnessLimit(e.target.value)}
+              placeholder="Leave empty to use the full dataset"
+            />
+            <label className="checkbox-label">
+              <input type="checkbox" checked={applyChatTemplate} onChange={(e) => setApplyChatTemplate(e.target.checked)} />
+              Apply the model chat template
+            </label>
+            <label>Additional harness arguments (JSON)</label>
+            <textarea
+              rows="3"
+              value={extraHarnessArgs}
+              onChange={(e) => setExtraHarnessArgs(e.target.value)}
+              placeholder={'e.g. {"log_samples": true}'}
+            />
+            <p className="field-help">Optional arguments are merged with the fields above.</p>
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div>
             <label className="checkbox-label">
               <input type="checkbox" checked={loadTestingEnabled} onChange={(e) => setLoadTestingEnabled(e.target.checked)} />
@@ -277,7 +309,7 @@ export default function ExperimentBuilder() {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div>
             <h2 style={{ marginTop: 0 }}>Review</h2>
             <table>
@@ -287,6 +319,7 @@ export default function ExperimentBuilder() {
                 <tr><th>Models</th><td>{models.join(", ")}</td></tr>
                 <tr><th>Benchmarks</th><td>{selectedBenchmarks.join(", ")}</td></tr>
                 <tr><th>Execution</th><td>{mode}{mode === "parallel" ? ` (${workers} workers)` : ""}</td></tr>
+                <tr><th>Harness options</th><td>{harnessLimit ? `limit=${harnessLimit}` : "Full dataset"}{applyChatTemplate ? ", chat template" : ""}</td></tr>
                 <tr><th>Load testing</th><td>{loadTestingEnabled ? `${parsedConcurrentUsers.join(", ")} concurrent users` : "Not included"}</td></tr>
                 <tr><th>Total jobs</th><td>{models.length * (selectedBenchmarks.length + (loadTestingEnabled ? parsedConcurrentUsers.length : 0))}</td></tr>
               </tbody>

@@ -7,8 +7,9 @@ description: "Minimal example benchmarking small Ollama models on two quick gene
 provider:
   type: ollama
   options:
-    manage: true
-    gpus: false
+    manage: false
+    host: host.docker.internal
+    port: 11434
     pull_models:
       - llama3.2:1b
       - qwen2.5:0.5b
