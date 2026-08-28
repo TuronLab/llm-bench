@@ -83,7 +83,7 @@ export default function Scalability() {
 
   if (error) return <div className="panel error-text">Failed to load scalability results: {error}</div>;
   if (!data) return <div className="panel">Loading scalability results...</div>;
-  if (!rows.length) return <div><h1>Scalability</h1><p className="subtitle">Concurrent streaming performance by model and provider.</p><MetricHelp /><div className="panel">No scalability tests yet. Add a <code>scalability</code> section to an experiment YAML and run it.</div></div>;
+  if (!rows.length) return <div><h1>Load testing</h1><p className="subtitle">Concurrent streaming performance by model and provider.</p><MetricHelp /><div className="panel">No scalability tests yet. Add a <code>scalability</code> section to an experiment YAML and run it.</div></div>;
 
   // Keep model groups together when rows are sorted by a provider metric.
   const groupedRows = [...new Set(rows.map((row) => row.model))].flatMap((model) => rows.filter((row) => row.model === model));
@@ -91,7 +91,7 @@ export default function Scalability() {
   const modelCounts = groupedRows.reduce((counts, row) => ({ ...counts, [row.model]: (counts[row.model] || 0) + 1 }), {});
   return (
     <div>
-      <h1>Scalability</h1>
+      <h1>Load testing</h1>
       <p className="subtitle">Streaming performance under concurrent load. TTFT is time to first token; output throughput may be estimated when the provider does not report token usage.</p>
       <MetricHelp />
       <div className="panel" style={{ overflowX: "auto" }}>

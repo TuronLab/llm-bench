@@ -14,7 +14,7 @@ export default function App() {
         <div className="brand">LLM Benchmarking Framework</div>
         <nav>
           <NavLink to="/" end>Dashboard</NavLink>
-          <NavLink to="/scalability">Scalability</NavLink>
+          <NavLink to="/scalability">Load testing</NavLink>
           <NavLink to="/experiments">Experiments</NavLink>
           <NavLink to="/experiments/new">New Experiment</NavLink>
           <NavLink to="/monitoring">Live Monitoring</NavLink>
