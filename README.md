@@ -319,6 +319,7 @@ Provider option templates live in [`infrastructure/configs/providers/`](infrastr
 - [Providers and experiment definitions](docs/providers.md)
 - [Generation settings](docs/generation.md)
 - [Load testing metrics and request execution](docs/load_testing.md)
+- [Using LiteLLM as an OpenAI-compatible proxy](docs/providers.md#openai-compatible-api)
 - [Supported benchmarks](docs/benchmarks.md)
 - [Experiment template](infrastructure/templates/experiment_template.yaml)
 - [Quickstart experiment](experiments/examples/quickstart.yaml)

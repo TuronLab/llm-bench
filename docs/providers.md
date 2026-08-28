@@ -77,6 +77,40 @@ the mechanism used by Apple Metal.
 
 Set `endpoint`, `api_key` when required, and a fallback `model` name. This provider is unmanaged: it only connects to an already-running service. See [`openai_compatible.yaml`](https://github.com/TuronLab/llm-bench/blob/main/infrastructure/configs/providers/openai_compatible.yaml).
 
+<details>
+<summary>Using LiteLLM as a compatibility proxy</summary>
+
+If the model-serving system does not expose an OpenAI-compatible API, you can
+place [LiteLLM](https://docs.litellm.ai/) in front of it. LiteLLM's Proxy Server
+translates OpenAI-format requests to the configured upstream provider and
+exposes a common chat-completions endpoint. This lets `llm-bench` use the same
+`openai_compatible` provider for benchmarks and load tests, including streaming
+load tests when the proxy and upstream support streaming.
+
+Start LiteLLM separately and configure its upstream model in a LiteLLM config.
+Then point the experiment at the proxy rather than directly at the model server:
+
+```yaml
+providers:
+  - type: openai_compatible
+    name: litellm
+    options:
+      endpoint: http://host.docker.internal:4000/v1
+      api_key: anything
+      model: my-model
+    supports_concurrency: true
+    keep_alive: true
+```
+
+The `model` value must match the model name exposed by LiteLLM's proxy. Keep
+provider-specific credentials in environment variables or a secret store, and
+do not commit them to the experiment YAML. When `llm-bench` runs in Docker and
+LiteLLM runs on the host, use `host.docker.internal`; use `localhost` when both
+processes run in the same network namespace. LiteLLM is external to
+`llm-bench`, so the framework does not start or stop it.
+
+</details>
+
 ### Hugging Face (local Transformers)
 
 The `huggingface` provider loads a model from Hugging Face through
