@@ -96,7 +96,7 @@ The framework records benchmark scores, execution duration, and load-test metric
 See [providers and experiment definitions](docs/providers.md) for concrete vLLM, Ollama, llama.cpp, and remote-API examples.
 
 
-## Benchmarks
+### Benchmarks
 
 Benchmark availability comes directly from the installed `lm-evaluation-harness` version, so it can include its full task registry and custom tasks. Get the exact list available in your deployment with:
 
@@ -105,6 +105,26 @@ docker compose run --rm cli benchmarks list
 ```
 
 The bundled common-task catalogue, with a short description of each task, is in [supported benchmarks](docs/benchmarks.md). It is intentionally separate from the version-specific list returned by the command above.
+
+### Load testing
+
+Load tests measure serving performance under concurrent requests. An experiment can
+run the same test at several concurrency levels and record latency, time to first
+token, output speed, throughput, and errors for every model and provider.
+
+Configure them with the `load_testing` section in an experiment definition. The
+`input` can contain prompt text directly or point to a UTF-8 Markdown/text file:
+
+```yaml
+load_testing:
+  concurrent_users: [1, 2, 4, 8]
+  input: "file://./experiments/inputs/load-testing-long-prompt.md"
+  max_output_tokens: 128
+  requests_per_user: 2
+```
+
+See [load testing](docs/load_testing.md) for the full configuration, metrics, and
+interpretation guidelines.
 
 ## How it works
 
@@ -115,8 +135,8 @@ Web dashboard or `bench` CLI
         FastAPI application
               |
               +-- starts/reuses a provider (vLLM, Ollama, llama.cpp, remote API)
-              +-- schedules one job per model × benchmark
-              +-- runs lm-evaluation-harness
+              +-- schedules benchmark and load-test jobs per model × provider
+              +-- runs lm-evaluation-harness and load tests
               `-- stores results and logs
 ```
 
@@ -143,6 +163,7 @@ infrastructure/       Adapters and operational assets
 experiments/          Example definitions and persisted experiment records
 results/              Persisted results
   benchmarks/         Persisted benchmark results
+  load_testing/       Persisted load-test results
 logs/                 Per-job logs
 tests/                Scheduler and experiment regression tests
 ```
