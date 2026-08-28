@@ -93,6 +93,11 @@ td.empty-cell { color: var(--muted); }
 .model-link, table a { color: var(--accent); text-decoration: none; }
 .model-link:hover, table a:hover { text-decoration: underline; }
 .model-group h2 { margin-bottom: 10px; }
+.results-section > summary { cursor: pointer; }
+.results-section > summary h2 { display: inline-block; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.results-section > summary h2 { font-size: 30px; }
+.provider-section > summary { cursor: pointer; }
+.provider-section > summary h3 { display: inline-block; margin: 12px 0 4px; }
 .configuration { color: var(--muted); }
 .metadata-block { margin: 8px 0 0; white-space: pre-wrap; font: inherit; color: var(--text); }
 .data-line { line-height: 1.55; }

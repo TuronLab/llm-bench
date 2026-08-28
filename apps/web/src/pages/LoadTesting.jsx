@@ -106,7 +106,7 @@ export default function LoadTesting() {
               const showModel = row.model !== previousModel;
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
-                {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}`}>{row.model}</a></td>}
+                {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}?from=load_testing`}>{row.model}</a></td>}
                 <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}), input: shorten(Object.values(row.values)[0]?.input_filename || Object.values(row.values)[0]?.input || "") }} /></td>
                 {users.flatMap((level) => {
                   const result = row.values[level];

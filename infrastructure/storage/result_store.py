@@ -106,7 +106,20 @@ class ResultStore:
         return latest
 
     def list_models(self) -> list[str]:
-        return sorted(p.stem for p in self._dir.glob("*.json"))
+        # Use the model identifier stored in the result, not the sanitized
+        # filename (e.g. ``llama3.2:1b`` vs ``llama3.2_1b``).
+        models: set[str] = set()
+        for path in self._dir.glob("*.json"):
+            try:
+                entries = json.loads(path.read_text(encoding="utf-8"))
+                models.update(
+                    entry.get("metadata", {}).get("model", "")
+                    for entry in entries
+                    if entry.get("metadata", {}).get("model")
+                )
+            except (OSError, json.JSONDecodeError):
+                continue
+        return sorted(models) or sorted(p.stem for p in self._dir.glob("*.json"))
 
     def dashboard_matrix(self) -> dict[str, dict[str, Optional[dict]]]:
         """
