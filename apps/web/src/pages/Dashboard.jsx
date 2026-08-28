@@ -25,6 +25,11 @@ export default function Dashboard() {
     (matrix[model]?.[b]?.providers || []).flatMap((p) => Object.keys(p.metadata?.common || {})))))).sort();
   const hasValue = (value) => value !== undefined && value !== null && value !== "" &&
     !(typeof value === "object" && Object.keys(value).length === 0);
+  const formatMetadata = (value, prefix = "") => {
+    if (!hasValue(value)) return "";
+    if (typeof value !== "object") return `${prefix}${value}`;
+    return Object.entries(value).map(([key, item]) => formatMetadata(item, `${prefix}${key}: `)).filter(Boolean).join("\n");
+  };
   const visibleCommonKeys = commonKeys.filter((key) => models.some((model) => benchmarks.some((b) =>
     (matrix[model]?.[b]?.providers || []).some((p) => hasValue(p.metadata?.common?.[key])))));
   const showExtraConf = models.some((model) => benchmarks.some((b) =>
@@ -94,7 +99,7 @@ export default function Dashboard() {
         checked={showMetadata}
           onChange={(e) => setShowMetadata(e.target.checked)}
         />
-        Mostrar metadata
+        Show metadata
       </label>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table>
@@ -117,7 +122,7 @@ export default function Dashboard() {
               return Array.from({ length: providerRows }, (_, rowIndex) => (
               <tr key={`${model}-${rowIndex}`}>
                 {rowIndex === 0 && <td rowSpan={providerRows}>{model}</td>}
-                {showMetadata && (() => { const p = providers[rowIndex]; const common = p?.metadata?.common || {}; return <><td>{p?.provider || "-"}</td>{visibleCommonKeys.map((key) => <td key={key}>{common[key] ?? ""}</td>)}{showExtraConf && <td>{hasValue(p?.metadata?.extra_conf) ? JSON.stringify(p.metadata.extra_conf) : ""}</td>}{showResources && <td>{hasValue(p?.metadata?.resources) ? JSON.stringify(p.metadata.resources) : ""}</td>}</>; })()}
+                {showMetadata && (() => { const p = providers[rowIndex]; const common = p?.metadata?.common || {}; return <><td>{p?.provider || "-"}</td>{visibleCommonKeys.map((key) => <td key={key}>{common[key] ?? ""}</td>)}{showExtraConf && <td style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata(p?.metadata?.extra_conf)}</td>}{showResources && <td style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata(p?.metadata?.resources)}</td>}</>; })()}
                 {benchmarks.map((bench) => {
                   const cell = matrix[model]?.[bench];
                   const score = showMetadata

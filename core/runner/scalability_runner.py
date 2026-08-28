@@ -15,7 +15,7 @@ import httpx
 
 from infrastructure.providers.base import Provider, ProviderError
 from infrastructure.storage.schemas import ScalabilityConfig, ScalabilityResult
-from core.runner.harness_runner import _resources
+from core.runner.harness_runner import _resources, metric_provider_options
 
 
 def run_scalability_test(provider: Provider, model: str, config: ScalabilityConfig, users: int) -> ScalabilityResult:
@@ -62,7 +62,12 @@ def run_scalability_test(provider: Provider, model: str, config: ScalabilityConf
         "tokens_estimated": estimated_tokens,
         "errors": [sample["error"] for sample in samples if sample["error"]][:5],
     }
-    safe_options = {key: value for key, value in provider.config.options.items() if key not in {"api_key", "hf_token"}}
+    safe_options = metric_provider_options(provider.config.options)
+    options = provider.config.options
+    device = options.get("device")
+    if device is None:
+        resources = _resources()
+        device = resources.get("gpu") or resources.get("cpu") or "unknown"
     extra_conf = {"input": config.input}
     if safe_options:
         extra_conf["provider_options"] = safe_options
@@ -76,6 +81,7 @@ def run_scalability_test(provider: Provider, model: str, config: ScalabilityConf
         provider_options=safe_options,
         metadata={
             "common": {key: value for key, value in {
+                "device": device,
                 "max_output_tokens": config.max_output_tokens,
                 "requests_per_user": config.requests_per_user,
                 "temperature": config.temperature,

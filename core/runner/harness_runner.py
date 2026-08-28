@@ -18,6 +18,7 @@ import time
 import platform
 import os
 import shutil
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -35,19 +36,58 @@ class HarnessExecutionError(RuntimeError):
 
 def _resources() -> dict:
     """Best-effort snapshot of the machine executing the experiment."""
+    system = platform.system()
     memory = None
-    try:
-        memory = round(os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") / 1024**3, 2)
-    except (AttributeError, OSError, ValueError):
-        pass
-    gpu = None
-    if shutil.which("nvidia-smi"):
+    if system == "Darwin":
+        memory = _command_value(["sysctl", "-n", "hw.memsize"])
+        memory = round(int(memory) / 1024**3, 2) if memory and memory.isdigit() else None
+    elif system == "Windows":
+        memory = _command_value(["powershell", "-NoProfile", "-Command", "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory"])
+        memory = round(int(memory) / 1024**3, 2) if memory and memory.isdigit() else None
+    else:
         try:
-            out = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], capture_output=True, text=True, timeout=5)
-            gpu = ", ".join(line.strip() for line in out.stdout.splitlines() if line.strip()) or None
-        except Exception:  # noqa: BLE001
+            memory = round(os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") / 1024**3, 2)
+        except (AttributeError, OSError, ValueError):
             pass
+
+    gpu = _command_value(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"])
+    if not gpu and system == "Darwin":
+        gpu = _command_value(["system_profiler", "SPDisplaysDataType"])
+        gpu = _first_matching_line(gpu, r"^(?:Chipset Model|Chip):\s*(.+)$")
+    if not gpu and system == "Windows":
+        gpu = _command_value(["powershell", "-NoProfile", "-Command", "(Get-CimInstance Win32_VideoController).Name"])
+    if not gpu and system == "Linux":
+        gpu = _command_value(["rocm-smi", "--showproductname", "--csv"])
+        if not gpu:
+            gpu = _command_value(["lspci"])
+            gpu = ", ".join(line.strip() for line in (gpu or "").splitlines() if re.search(r"VGA|3D|Display", line, re.I)) or None
     return {"cpu": platform.processor() or platform.machine(), "cpu_count": os.cpu_count(), "ram_gb": memory, "gpu": gpu}
+
+
+_NON_METRIC_PROVIDER_OPTIONS = {"host", "port", "endpoint", "api_key", "hf_token", "model", "model_path", "manage", "pull_models", "models_volume", "host_models_dir"}
+
+
+def metric_provider_options(options: dict) -> dict:
+    return {key: value for key, value in options.items() if key not in _NON_METRIC_PROVIDER_OPTIONS}
+
+
+def _command_value(command: list[str]) -> str | None:
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            value = result.stdout.strip()
+            return value or None
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return None
+
+
+def _first_matching_line(value: str | None, pattern: str) -> str | None:
+    for line in (value or "").splitlines():
+        match = re.search(pattern, line.strip(), re.I)
+        if match:
+            return match.group(1).strip()
+    return None
 
 
 def _harness_version() -> Optional[str]:
@@ -164,7 +204,7 @@ def run_benchmark(
             **(extra_args or {}),
         },
         metadata={"common": {k: v for k, v in (extra_args or {}).items() if k in {"temperature", "top_p", "top_k", "p", "k"}},
-                  "extra_conf": {"provider_options": {k: v for k, v in provider.config.options.items() if k not in {"api_key", "hf_token"}},
+                  "extra_conf": {"provider_options": metric_provider_options(provider.config.options),
                                  **{k: v for k, v in (extra_args or {}).items() if k not in {"temperature", "top_p", "top_k", "p", "k"}}},
                   "resources": _resources()},
     )

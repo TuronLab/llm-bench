@@ -3,6 +3,13 @@ import { api } from "../api/client.js";
 
 const formatSeconds = (value) => value === null || value === undefined ? "-" : `${(value * 1000).toFixed(0)} ms`;
 const formatRate = (value) => value === null || value === undefined ? "-" : `${value.toFixed(2)} tok/s`;
+const formatMetadata = (value, prefix = "") => {
+  if (value === null || value === undefined || value === "") return "";
+  if (typeof value !== "object") return `${prefix}${value}`;
+  return Object.entries(value).flatMap(([key, item]) =>
+    formatMetadata(item, `${prefix}${key}: `).split("\n")
+  ).join("\n");
+};
 
 function MetricHelp() {
   return <details className="panel metric-help">
@@ -89,7 +96,7 @@ export default function Scalability() {
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}>{row.model}</td>}
-                <td>{row.provider}</td><td title={JSON.stringify(row.metadata, null, 2)}>{JSON.stringify(row.metadata.common || {})}</td>
+                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata({ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}) })}</td>
                 {users.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;
