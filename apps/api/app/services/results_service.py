@@ -29,6 +29,10 @@ def detailed_result(model: str, benchmark: str) -> Optional[BenchmarkResult]:
     return latest.get(benchmark)
 
 
+def delete_latest_result(model: str, benchmark: str, timestamp: str | None = None) -> bool:
+    return result_store.delete_latest(model, benchmark, timestamp)
+
+
 def scalability_results() -> list[dict]:
     """Latest load-test result for every model/provider/concurrency combination."""
     return [result.model_dump(mode="json") for result in scalability_store.latest()]

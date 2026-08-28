@@ -33,9 +33,11 @@ export const api = {
   getJobLogs: (experimentId, jobId, tail = 500) =>
     request(`/experiments/${experimentId}/logs/${jobId}?tail=${tail}`),
 
-  getResultsMatrix: () => request("/results"),
+  getResultsMatrix: () => request(`/results?_=${Date.now()}`),
   getScalabilityResults: () => request("/results/scalability"),
   getModelResults: (model) => request(`/results/${encodeURIComponent(model)}`),
   getDetailedResult: (model, benchmark) =>
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}`),
+  deleteDetailedResult: (model, benchmark, timestamp) =>
+    request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}?timestamp=${encodeURIComponent(timestamp)}`, { method: "DELETE" }),
 };

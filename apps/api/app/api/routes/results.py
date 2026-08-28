@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from apps.api.app.services import results_service
 
@@ -39,3 +39,10 @@ def get_detailed_result(model: str, benchmark: str):
             detail=f"No result found for model '{model}' on benchmark '{benchmark}'",
         )
     return result
+
+
+@router.delete("/{model}/{benchmark}")
+def delete_detailed_result(model: str, benchmark: str, timestamp: str | None = Query(default=None)):
+    if not results_service.delete_latest_result(model, benchmark, timestamp):
+        raise HTTPException(status_code=404, detail="Result not found")
+    return {"deleted": True}

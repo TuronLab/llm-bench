@@ -8,6 +8,19 @@ export default function ResultDetail() {
   const [error, setError] = useState(null);
   const [sortKey, setSortKey] = useState("metric");
   const [filter, setFilter] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const deleteResult = async () => {
+    if (!window.confirm(`Delete the result for ${model} / ${benchmark}? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      await api.deleteDetailedResult(model, benchmark, result.metadata.timestamp);
+      window.location.href = "/";
+    } catch (e) {
+      setError(e.message);
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     api.getDetailedResult(model, benchmark).then(setResult).catch((e) => setError(e.message));
@@ -31,7 +44,12 @@ export default function ResultDetail() {
     <div>
       <Link to="/" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; Back to dashboard</Link>
       <h1>{model}</h1>
-      <p className="subtitle">Benchmark: {benchmark}</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p className="subtitle">Benchmark: {benchmark}</p>
+        <button className="danger" onClick={deleteResult} disabled={deleting}>
+          {deleting ? "Deleting..." : "Delete result"}
+        </button>
+      </div>
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Run metadata</h2>

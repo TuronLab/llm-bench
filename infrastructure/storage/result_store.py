@@ -52,12 +52,20 @@ class ResultStore:
             existing: list[dict] = []
             if path.exists():
                 existing = json.loads(path.read_text(encoding="utf-8"))
-            if overwrite:
-                existing = [
-                    e for e in existing
-                    if e.get("metadata", {}).get("benchmark") != result.metadata.benchmark
-                ]
-            existing.append(json.loads(result.model_dump_json()))
+            new_entry = json.loads(result.model_dump_json())
+            new_meta = new_entry.get("metadata", {})
+            new_key = (
+                new_meta.get("benchmark"), new_meta.get("provider"),
+                json.dumps(new_meta.get("metadata", {}), sort_keys=True, default=str),
+            )
+            # A configuration identifies one result. Re-running it refreshes
+            # the existing entry instead of creating another dashboard row.
+            existing = [e for e in existing if (
+                e.get("metadata", {}).get("benchmark"),
+                e.get("metadata", {}).get("provider"),
+                json.dumps(e.get("metadata", {}).get("metadata", {}), sort_keys=True, default=str),
+            ) != new_key]
+            existing.append(new_entry)
             path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
             logger.info("Stored result for model=%s benchmark=%s -> %s",
                         result.metadata.model, result.metadata.benchmark, path)
@@ -69,6 +77,25 @@ class ResultStore:
             return []
         data = json.loads(path.read_text(encoding="utf-8"))
         return [BenchmarkResult.model_validate(entry) for entry in data]
+
+    def delete_latest(self, model: str, benchmark: str, timestamp: str | None = None) -> bool:
+        """Delete the result currently shown for a model/benchmark."""
+        with self._lock:
+            path = self._path(model)
+            if not path.exists():
+                return False
+            entries = json.loads(path.read_text(encoding="utf-8"))
+            candidates = [e for e in entries if e.get("metadata", {}).get("benchmark") == benchmark]
+            if not candidates:
+                return False
+            if timestamp:
+                candidates = [e for e in candidates if e.get("metadata", {}).get("timestamp") == timestamp]
+                if not candidates:
+                    return False
+            target = max(candidates, key=lambda e: e.get("metadata", {}).get("timestamp", ""))
+            entries.remove(target)
+            path.write_text(json.dumps(entries, indent=2), encoding="utf-8")
+            return True
 
     def latest_by_benchmark(self, model: str) -> dict[str, BenchmarkResult]:
         latest: dict[str, BenchmarkResult] = {}
