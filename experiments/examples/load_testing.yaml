@@ -19,7 +19,7 @@ models:
 load_testing:
   users: [1, 2, 4, 8]
   # The backend reads this UTF-8 Markdown file once before starting the burst.
-  input: "patata"
+  input: "file://./experiments/inputs/load-testing-long-prompt.md"
   max_output_tokens: 128
   requests_per_user: 2
   temperature: 0

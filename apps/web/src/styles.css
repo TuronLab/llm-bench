@@ -83,8 +83,7 @@ th.sortable-header:hover { color: var(--text); }
 th.group-header { text-align: center; border-left: 1px solid var(--border); }
 .load_testing-table { table-layout: auto; }
 .load_testing-table th, .load_testing-table td { vertical-align: middle; text-align: center; }
-.load_testing-table td:nth-child(5n + 4) { border-left: 1px solid var(--border); }
-.load_testing-table thead tr:nth-child(2) th:nth-child(5n + 1) { border-left: 1px solid var(--border); }
+.load_testing-table td.metric-group-start, .load_testing-table th.metric-group-start { border-left: 1px solid var(--border); }
 .load_testing-table thead tr:first-child th.group-header { border-left: 1px solid var(--border); }
 .load_testing-table thead tr:first-child th:nth-child(3) { border-right: 1px solid var(--border); }
 

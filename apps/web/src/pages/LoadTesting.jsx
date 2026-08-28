@@ -3,7 +3,7 @@ import { api } from "../api/client.js";
 
 const formatSeconds = (value) => value === null || value === undefined ? "-" : `${(value * 1000).toFixed(0)} ms`;
 const formatRate = (value) => value === null || value === undefined ? "-" : `${value.toFixed(2)} tok/s`;
-const shorten = (value) => value.length > 15 ? `${value.slice(0, 5)}...${value.slice(-10)}` : value;
+const shorten = (value) => value && value.length > 15 ? `${value.slice(0, 5)}...${value.slice(-10)}` : (value || "Not available");
 const formatMetadata = (value, prefix = "") => {
   if (value === null || value === undefined || value === "") return "";
   if (typeof value !== "object") return `${prefix}${value}`;
@@ -99,7 +99,7 @@ export default function LoadTesting() {
         <table className="load_testing-table">
           <thead>
             <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2">Provider</th><th rowSpan="2">Metadata</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
-            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
+            <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header metric-group-start" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
             {groupedRows.map((row) => {
@@ -107,12 +107,12 @@ export default function LoadTesting() {
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}`}>{row.model}</a></td>}
-                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}), input: shorten(row.values[users[0]]?.input || "") }} /></td>
+                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}), input: shorten(Object.values(row.values)[0]?.input_filename || Object.values(row.values)[0]?.input || "") }} /></td>
                 {users.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;
                   return [
-                    <td key={`${level}-ttft`}>{formatSeconds(metrics?.ttft_p50_seconds)}</td>,
+                    <td key={`${level}-ttft`} className="metric-group-start">{formatSeconds(metrics?.ttft_p50_seconds)}</td>,
                     <td key={`${level}-latency`}>{formatSeconds(metrics?.latency_p95_seconds)}</td>,
                     <td key={`${level}-rate`}>{formatRate(metrics?.output_tokens_per_second)}{metrics?.tokens_estimated ? "*" : ""}</td>,
                     <td key={`${level}-perceived`}>{formatRate(metrics?.perceived_tokens_per_second_mean)}{metrics?.tokens_estimated ? "*" : ""}</td>,

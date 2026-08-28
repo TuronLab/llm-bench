@@ -22,17 +22,20 @@ class LoadTestingStore:
         with self._lock:
             path = self._dir / f"{sanitize_model_name(result.model)}.json"
             existing = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
-            existing.append(json.loads(result.model_dump_json()))
+            new_entry = json.loads(result.model_dump_json())
+            new_key = (result.provider, result.users, json.dumps(result.metadata, sort_keys=True, default=str))
+            existing = [e for e in existing if (e.get("provider"), e.get("users"), json.dumps(e.get("metadata", {}), sort_keys=True, default=str)) != new_key]
+            existing.append(new_entry)
             path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
             return path
 
     def latest(self) -> list[LoadTestingResult]:
         with self._lock:
-            latest: dict[tuple[str, str, int], LoadTestingResult] = {}
+            latest: dict[tuple[str, str, int, str], LoadTestingResult] = {}
             for path in self._dir.glob("*.json"):
                 for item in json.loads(path.read_text(encoding="utf-8")):
                     result = LoadTestingResult.model_validate(item)
-                    key = (result.model, result.provider, result.users)
+                    key = (result.model, result.provider, result.users, json.dumps(result.metadata, sort_keys=True, default=str))
                     if key not in latest or result.timestamp > latest[key].timestamp:
                         latest[key] = result
             return sorted(latest.values(), key=lambda result: (result.model, result.provider, result.users))
