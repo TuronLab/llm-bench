@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 
@@ -13,6 +13,10 @@ export default function LiveMonitoring() {
   const [logs, setLogs] = useState([]);
   const [error, setError] = useState(null);
   const [elapsedTick, setElapsedTick] = useState(Date.now());
+  // Keep the display monotonic when a poll briefly returns an older status or
+  // timestamp than the previous response.
+  const elapsedByExperiment = useRef({});
+  const elapsedStartByExperiment = useRef({});
 
   useEffect(() => {
     api.listExperiments().then((d) => {
@@ -105,7 +109,7 @@ export default function LiveMonitoring() {
               </div>
               <div>
                 <div style={{ fontSize: 13, color: "var(--muted)" }}>Elapsed</div>
-                <div>{formatElapsed(record.created_at, record.updated_at, record.status, elapsedTick)}</div>
+                <div>{formatElapsed(record.started_at || record.created_at, record.updated_at, record.status, elapsedTick, elapsedByExperiment.current, elapsedStartByExperiment.current, record.id)}</div>
               </div>
             </div>
 
@@ -156,10 +160,22 @@ export default function LiveMonitoring() {
   );
 }
 
-function formatElapsed(createdAt, updatedAt, status, tick) {
+function formatElapsed(createdAt, updatedAt, status, tick, elapsedByExperiment, elapsedStartByExperiment, experimentId) {
   const start = new Date(createdAt).getTime();
+  if (status === "queued") return "00:00:00";
+  // Server timestamps can have clock skew and `updated_at` changes throughout
+  // the run. Anchor running experiments to the first client observation so
+  // the displayed timer is a real elapsed counter, never a countdown.
+  if (status === "running" && elapsedStartByExperiment[experimentId] === undefined) {
+    elapsedStartByExperiment[experimentId] = tick;
+  }
+  const anchor = elapsedStartByExperiment[experimentId];
   const end = TERMINAL.has(status) ? new Date(updatedAt).getTime() : tick;
-  const seconds = Math.max(0, Math.round((end - start) / 1000));
+  const measuredSeconds = anchor !== undefined
+    ? Math.max(0, Math.round(((TERMINAL.has(status) ? Math.max(end, anchor) : tick) - anchor) / 1000))
+    : Math.max(0, Math.round((end - start) / 1000));
+  const seconds = Math.max(measuredSeconds, elapsedByExperiment[experimentId] || 0);
+  elapsedByExperiment[experimentId] = seconds;
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;

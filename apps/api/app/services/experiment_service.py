@@ -193,6 +193,7 @@ def _run_experiment(experiment_id: str) -> None:
         return
 
     record.status = ExperimentStatus.RUNNING
+    record.started_at = datetime.utcnow()
     record.updated_at = datetime.utcnow()
     experiment_store.save(record)
 
