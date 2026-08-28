@@ -1,3 +1,8 @@
+---
+title: Load testing
+permalink: /load-testing/
+---
+
 # Load testing
 
 Load testing measures how an OpenAI-compatible streaming chat endpoint behaves

@@ -12,6 +12,8 @@ It is designed for comparisons that public leaderboards do not always cover: spe
 
 - [Architecture and execution model]({{ '/architecture/' | relative_url }})
 - [Providers and experiment definitions]({{ '/providers/' | relative_url }})
+- [Generation settings]({{ '/generation/' | relative_url }})
+- [Load testing]({{ '/load-testing/' | relative_url }})
 - [Supported benchmarks]({{ '/benchmarks/' | relative_url }})
 
 ## Quick start

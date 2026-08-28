@@ -1,3 +1,8 @@
+---
+title: Generation settings
+permalink: /generation/
+---
+
 # Generation settings
 
 Experiments can define common generation parameters under `generation`. These
