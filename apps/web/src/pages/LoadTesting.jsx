@@ -98,7 +98,8 @@ export default function LoadTesting() {
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="load_testing-table">
           <thead>
-            <tr>{concurrentUsers.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header metric-group-start" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
+            <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2">Provider</th><th rowSpan="2">Metadata</th>{concurrentUsers.map((level) => <th key={level} colSpan="5" className="group-header">{level} concurrent users</th>)}</tr>
+            <tr>{concurrentUsers.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header metric-group-start" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Perceived tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Total output tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
             {groupedRows.map((row) => {
@@ -107,14 +108,14 @@ export default function LoadTesting() {
               return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}?from=load_testing`}>{row.model}</a></td>}
                 <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}), input: shorten(Object.values(row.values)[0]?.input_filename || Object.values(row.values)[0]?.input || "") }} /></td>
-                {users.flatMap((level) => {
+                {concurrentUsers.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;
                   return [
                     <td key={`${level}-ttft`} className="metric-group-start">{formatSeconds(metrics?.ttft_p50_seconds)}</td>,
                     <td key={`${level}-latency`}>{formatSeconds(metrics?.latency_p95_seconds)}</td>,
-                    <td key={`${level}-rate`}>{formatRate(metrics?.output_tokens_per_second)}{metrics?.tokens_estimated ? "*" : ""}</td>,
                     <td key={`${level}-perceived`}>{formatRate(metrics?.perceived_tokens_per_second_mean)}{metrics?.tokens_estimated ? "*" : ""}</td>,
+                    <td key={`${level}-rate`}>{formatRate(metrics?.output_tokens_per_second)}{metrics?.tokens_estimated ? "*" : ""}</td>,
                     <td key={`${level}-errors`}>{metrics ? `${metrics.failed_requests}/${metrics.requests}` : "-"}</td>,
                   ];
                 })}
