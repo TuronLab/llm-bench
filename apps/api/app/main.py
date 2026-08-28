@@ -13,10 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from apps.api.app.api.routes import benchmarks, experiments, providers, results
 from apps.api.app.core.config import settings
 from apps.api.app.core.logging import configure_logging
+from apps.api.app.services.experiment_service import recover_interrupted_experiments
 from infrastructure.storage.paths import ensure_directories
 
 configure_logging()
 ensure_directories()
+recover_interrupted_experiments()
 
 app = FastAPI(
     title=settings.APP_NAME,

@@ -88,6 +88,25 @@ _active_schedulers: dict[str, Scheduler] = {}
 _active_lock = threading.Lock()
 
 
+def recover_interrupted_experiments() -> int:
+    """Mark persisted executions as failed after an unexpected process stop."""
+    recovered = 0
+    for record in experiment_store.list_all():
+        if record.status not in (ExperimentStatus.QUEUED, ExperimentStatus.RUNNING):
+            continue
+        for job in record.jobs:
+            if job.status in (JobStatus.PENDING, JobStatus.STARTING_PROVIDER, JobStatus.RUNNING):
+                job.status = JobStatus.FAILED
+                job.error = "Execution interrupted because the API process stopped unexpectedly."
+                job.finished_at = datetime.utcnow()
+        record.status = ExperimentStatus.FAILED
+        record.updated_at = datetime.utcnow()
+        experiment_store.save(record)
+        recovered += 1
+        logger.warning("Recovered interrupted experiment %s as failed", record.id)
+    return recovered
+
+
 def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
     provider_name = definition.provider.name or definition.provider.type
     jobs = [
