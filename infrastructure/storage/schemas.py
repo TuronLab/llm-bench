@@ -131,6 +131,7 @@ class ResultMetadata(BaseModel):
     harness_version: Optional[str] = None
     git_commit: Optional[str] = None
     execution_config: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class BenchmarkResult(BaseModel):
@@ -152,4 +153,5 @@ class ScalabilityResult(BaseModel):
     max_output_tokens: int
     requests_per_user: int
     provider_options: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     metrics: dict[str, Any] = Field(default_factory=dict)

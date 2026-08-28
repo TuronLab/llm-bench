@@ -6,7 +6,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [showProviders, setShowProviders] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
   const [sort, setSort] = useState({ key: "model", direction: "asc" });
   const navigate = useNavigate();
 
@@ -21,6 +21,16 @@ export default function Dashboard() {
   const benchmarks = Array.from(
     new Set(Object.values(matrix).flatMap((row) => Object.keys(row)))
   ).sort();
+  const commonKeys = Array.from(new Set(models.flatMap((model) => benchmarks.flatMap((b) =>
+    (matrix[model]?.[b]?.providers || []).flatMap((p) => Object.keys(p.metadata?.common || {})))))).sort();
+  const hasValue = (value) => value !== undefined && value !== null && value !== "" &&
+    !(typeof value === "object" && Object.keys(value).length === 0);
+  const visibleCommonKeys = commonKeys.filter((key) => models.some((model) => benchmarks.some((b) =>
+    (matrix[model]?.[b]?.providers || []).some((p) => hasValue(p.metadata?.common?.[key])))));
+  const showExtraConf = models.some((model) => benchmarks.some((b) =>
+    (matrix[model]?.[b]?.providers || []).some((p) => hasValue(p.metadata?.extra_conf))));
+  const showResources = models.some((model) => benchmarks.some((b) =>
+    (matrix[model]?.[b]?.providers || []).some((p) => hasValue(p.metadata?.resources))));
 
   const filteredModels = models.filter((m) =>
     m.toLowerCase().includes(search.toLowerCase())
@@ -35,13 +45,9 @@ export default function Dashboard() {
 
   const sortValue = (model, key) => {
     if (key === "model") return model;
-    if (key === "provider") {
-      return benchmarks.flatMap((benchmark) => matrix[model]?.[benchmark]?.providers || [])
-        .map((provider) => provider.provider)
-        .sort()[0] || "";
-    }
+    if (key === "metadata") return JSON.stringify(matrix[model]?.[benchmarks[0]]?.providers?.[0]?.metadata || {});
     const cell = matrix[model]?.[key];
-    return showProviders
+    return showMetadata
       ? cell?.providers?.[0]?.value ?? null
       : cell?.value ?? null;
   };
@@ -85,17 +91,17 @@ export default function Dashboard() {
       <label className="table-toggle">
         <input
           type="checkbox"
-          checked={showProviders}
-          onChange={(e) => setShowProviders(e.target.checked)}
+        checked={showMetadata}
+          onChange={(e) => setShowMetadata(e.target.checked)}
         />
-        Mostrar resultados por provider
+        Mostrar metadata
       </label>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
               <th className="sortable-header" onClick={() => toggleSort("model")}>Model {sortIndicator("model")}</th>
-              {showProviders && <th className="sortable-header" onClick={() => toggleSort("provider")}>Provider {sortIndicator("provider")}</th>}
+              {showMetadata && <><th>Provider</th>{visibleCommonKeys.map((key) => <th key={key}>{key}</th>)}{showExtraConf && <th>extra_conf</th>}{showResources && <th>Resources</th>}</>}
               {benchmarks.map((b) => (
                 <th key={b} className="sortable-header" onClick={() => toggleSort(b)}>{b} {sortIndicator(b)}</th>
               ))}
@@ -103,20 +109,19 @@ export default function Dashboard() {
           </thead>
           <tbody>
             {sortedModels.flatMap((model) => {
-              const providerRows = showProviders
-                ? Math.max(1, ...benchmarks.map((bench) => matrix[model]?.[bench]?.providers?.length || 0))
-                : 1;
-              const providers = showProviders
-                ? Array.from(new Set(benchmarks.flatMap((bench) => (matrix[model]?.[bench]?.providers || []).map((p) => p.provider)))).sort()
+              const allProviders = benchmarks.flatMap((bench) => matrix[model]?.[bench]?.providers || []);
+              const providers = showMetadata
+                ? [...new Map(allProviders.map((p) => [JSON.stringify({ provider: p.provider, metadata: p.metadata || {} }), p])).values()]
                 : [null];
+              const providerRows = showMetadata ? Math.max(1, providers.length) : 1;
               return Array.from({ length: providerRows }, (_, rowIndex) => (
               <tr key={`${model}-${rowIndex}`}>
                 {rowIndex === 0 && <td rowSpan={providerRows}>{model}</td>}
-                {showProviders && <td>{providers[rowIndex] || "-"}</td>}
+                {showMetadata && (() => { const p = providers[rowIndex]; const common = p?.metadata?.common || {}; return <><td>{p?.provider || "-"}</td>{visibleCommonKeys.map((key) => <td key={key}>{common[key] ?? ""}</td>)}{showExtraConf && <td>{hasValue(p?.metadata?.extra_conf) ? JSON.stringify(p.metadata.extra_conf) : ""}</td>}{showResources && <td>{hasValue(p?.metadata?.resources) ? JSON.stringify(p.metadata.resources) : ""}</td>}</>; })()}
                 {benchmarks.map((bench) => {
                   const cell = matrix[model]?.[bench];
-                  const score = showProviders
-                    ? cell?.providers?.find((p) => p.provider === providers[rowIndex])
+                  const score = showMetadata
+                    ? cell?.providers?.find((p) => JSON.stringify({ provider: p.provider, metadata: p.metadata || {} }) === JSON.stringify({ provider: providers[rowIndex]?.provider, metadata: providers[rowIndex]?.metadata || {} }))
                     : cell;
                   if (!score || score.value === null || score.value === undefined) {
                     return <td key={bench} className="empty-cell">-</td>;

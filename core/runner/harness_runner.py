@@ -15,6 +15,9 @@ import json
 import logging
 import subprocess
 import time
+import platform
+import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -28,6 +31,23 @@ logger = logging.getLogger("benchlab.runner")
 
 class HarnessExecutionError(RuntimeError):
     pass
+
+
+def _resources() -> dict:
+    """Best-effort snapshot of the machine executing the experiment."""
+    memory = None
+    try:
+        memory = round(os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") / 1024**3, 2)
+    except (AttributeError, OSError, ValueError):
+        pass
+    gpu = None
+    if shutil.which("nvidia-smi"):
+        try:
+            out = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], capture_output=True, text=True, timeout=5)
+            gpu = ", ".join(line.strip() for line in out.stdout.splitlines() if line.strip()) or None
+        except Exception:  # noqa: BLE001
+            pass
+    return {"cpu": platform.processor() or platform.machine(), "cpu_count": os.cpu_count(), "ram_gb": memory, "gpu": gpu}
 
 
 def _harness_version() -> Optional[str]:
@@ -143,6 +163,10 @@ def run_benchmark(
             "model_args": provider.harness_model_args(model),
             **(extra_args or {}),
         },
+        metadata={"common": {k: v for k, v in (extra_args or {}).items() if k in {"temperature", "top_p", "top_k", "p", "k"}},
+                  "extra_conf": {"provider_options": {k: v for k, v in provider.config.options.items() if k not in {"api_key", "hf_token"}},
+                                 **{k: v for k, v in (extra_args or {}).items() if k not in {"temperature", "top_p", "top_k", "p", "k"}}},
+                  "resources": _resources()},
     )
     return BenchmarkResult(metadata=metadata, metrics=metrics, raw=raw_output)
 

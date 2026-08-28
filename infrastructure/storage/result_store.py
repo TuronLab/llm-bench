@@ -89,14 +89,14 @@ class ResultStore:
         matrix: dict[str, dict[str, Optional[dict]]] = {}
         for model in self.list_models():
             results = self.load(model)
-            latest: dict[tuple[str, str], BenchmarkResult] = {}
+            latest: dict[tuple[str, str, str], BenchmarkResult] = {}
             for result in results:
-                key = (result.metadata.benchmark, result.metadata.provider)
+                key = (result.metadata.benchmark, result.metadata.provider, json.dumps(result.metadata.metadata, sort_keys=True, default=str))
                 if key not in latest or result.metadata.timestamp > latest[key].metadata.timestamp:
                     latest[key] = result
 
             by_benchmark: dict[str, list[dict]] = {}
-            for (benchmark, _provider), result in latest.items():
+            for (benchmark, _provider, _configuration), result in latest.items():
                 by_benchmark.setdefault(benchmark, []).append(_primary_score(result))
 
             matrix[model] = {
@@ -117,6 +117,7 @@ def _primary_score(result: BenchmarkResult) -> dict:
     primary_key = next(iter(metrics), None)
     return {
         "provider": result.metadata.provider,
+        "metadata": result.metadata.metadata,
         "primary_metric": primary_key,
         "value": metrics.get(primary_key) if primary_key else None,
         "all_metrics": metrics,

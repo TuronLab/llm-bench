@@ -33,8 +33,9 @@ export default function Scalability() {
     const levels = [...new Set(results.map((result) => result.users))].sort((a, b) => a - b);
     const grouped = new Map();
     results.forEach((result) => {
-      const key = `${result.model}\u0000${result.provider}`;
-      if (!grouped.has(key)) grouped.set(key, { model: result.model, provider: result.provider, values: {} });
+      const signature = JSON.stringify(result.metadata || {});
+      const key = `${result.model}\u0000${result.provider}\u0000${signature}`;
+      if (!grouped.has(key)) grouped.set(key, { model: result.model, provider: result.provider, metadata: result.metadata || {}, values: {} });
       grouped.get(key).values[result.users] = result;
     });
     return { users: levels, rows: [...grouped.values()].sort((a, b) => a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider)) };
@@ -79,7 +80,7 @@ export default function Scalability() {
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="scalability-table">
           <thead>
-            <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("provider")}>Provider {indicator("provider")}</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
+            <tr><th rowSpan="2" className="sortable-header" onClick={() => toggleSort("model")}>Model {indicator("model")}</th><th rowSpan="2">Provider</th><th rowSpan="2">Metadata</th>{users.map((level) => <th key={level} colSpan="5" className="group-header">{level} users</th>)}</tr>
             <tr>{users.flatMap((level) => [<th key={`${level}-ttft`} className="sortable-header" onClick={() => toggleSort(`${level}:ttft_p50_seconds`)}>TTFT p50 {indicator(`${level}:ttft_p50_seconds`)}</th>, <th key={`${level}-latency`} className="sortable-header" onClick={() => toggleSort(`${level}:latency_p95_seconds`)}>Latency p95 {indicator(`${level}:latency_p95_seconds`)}</th>, <th key={`${level}-rate`} className="sortable-header" onClick={() => toggleSort(`${level}:output_tokens_per_second`)}>Aggregate tok/s {indicator(`${level}:output_tokens_per_second`)}</th>, <th key={`${level}-perceived`} className="sortable-header" onClick={() => toggleSort(`${level}:perceived_tokens_per_second_mean`)}>Decode tok/s {indicator(`${level}:perceived_tokens_per_second_mean`)}</th>, <th key={`${level}-errors`} className="sortable-header" onClick={() => toggleSort(`${level}:error_rate`)}>Errors {indicator(`${level}:error_rate`)}</th>])}</tr>
           </thead>
           <tbody>
@@ -88,7 +89,7 @@ export default function Scalability() {
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}>{row.model}</td>}
-                <td title={JSON.stringify(Object.values(row.values)[0]?.provider_options || {}, null, 2)}>{row.provider}</td>
+                <td>{row.provider}</td><td title={JSON.stringify(row.metadata, null, 2)}>{JSON.stringify(row.metadata.common || {})}</td>
                 {users.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;

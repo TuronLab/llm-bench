@@ -5,7 +5,9 @@ description: "Streaming load test for a local Ollama model."
 provider:
   type: ollama
   options:
-    manage: true
+    manage: false
+    host: host.docker.internal
+    port: 11434
     gpus: false
     pull_models:
       - llama3.2:1b
