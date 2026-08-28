@@ -3,6 +3,7 @@ import { api } from "../api/client.js";
 
 const formatSeconds = (value) => value === null || value === undefined ? "-" : `${(value * 1000).toFixed(0)} ms`;
 const formatRate = (value) => value === null || value === undefined ? "-" : `${value.toFixed(2)} tok/s`;
+const shorten = (value) => value.length > 15 ? `${value.slice(0, 5)}...${value.slice(-10)}` : value;
 const formatMetadata = (value, prefix = "") => {
   if (value === null || value === undefined || value === "") return "";
   if (typeof value !== "object") return `${prefix}${value}`;
@@ -106,7 +107,7 @@ export default function LoadTesting() {
               previousModel = row.model;
               return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}><a href={`/model/${encodeURIComponent(row.model)}`}>{row.model}</a></td>}
-                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}) }} /></td>
+                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}), input: shorten(row.values[users[0]]?.input || "") }} /></td>
                 {users.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;

@@ -103,6 +103,9 @@ td.empty-cell { color: var(--muted); }
 .result-card h3 { margin: 0; font-size: 14px; }
 .metric-card-table { width: 100%; margin-top: 10px; }
 .metric-card-table th, .metric-card-table td { padding: 5px 7px; }
+.prompt-block { margin-top: 10px; text-align: left; }
+.prompt-block summary { cursor: pointer; color: var(--text); }
+.prompt-full { margin-top: 8px; white-space: pre-wrap; color: var(--text); }
 @media (max-width: 700px) { .result-cards { grid-template-columns: 1fr; } }
 .table-toggle { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 16px 16px; color: var(--muted); font-size: 14px; }
 .table-toggle input { width: auto; }

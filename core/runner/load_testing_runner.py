@@ -76,6 +76,8 @@ def run_load_testing_test(provider: Provider, model: str, config: LoadTestingCon
         provider=provider.config.name,
         users=users,
         input=config.input,
+        prompt=input_text,
+        input_filename=Path(unquote(urlparse(config.input).path)).name if config.input.startswith("file://") else None,
         max_output_tokens=config.max_output_tokens,
         requests_per_user=config.requests_per_user,
         provider_options=safe_options,

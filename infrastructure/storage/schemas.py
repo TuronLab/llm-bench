@@ -150,6 +150,8 @@ class LoadTestingResult(BaseModel):
     users: int
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     input: str
+    prompt: str = ""
+    input_filename: Optional[str] = None
     max_output_tokens: int
     requests_per_user: int
     provider_options: dict[str, Any] = Field(default_factory=dict)
