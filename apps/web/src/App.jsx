@@ -5,7 +5,7 @@ import ExperimentBuilder from "./pages/ExperimentBuilder.jsx";
 import LiveMonitoring from "./pages/LiveMonitoring.jsx";
 import ResultDetail from "./pages/ResultDetail.jsx";
 import ExperimentsList from "./pages/ExperimentsList.jsx";
-import Scalability from "./pages/Scalability.jsx";
+import LoadTesting from "./pages/LoadTesting.jsx";
 import ModelResults from "./pages/ModelResults.jsx";
 
 export default function App() {
@@ -15,7 +15,7 @@ export default function App() {
         <div className="brand">LLM Benchmarking Framework</div>
         <nav>
           <NavLink to="/" end>Dashboard</NavLink>
-          <NavLink to="/scalability">Load testing</NavLink>
+          <NavLink to="/load_testing">Load testing</NavLink>
           <NavLink to="/experiments">Experiments</NavLink>
           <NavLink to="/experiments/new">New Experiment</NavLink>
           <NavLink to="/monitoring">Live Monitoring</NavLink>
@@ -30,7 +30,7 @@ export default function App() {
           <Route path="/experiments/new" element={<ExperimentBuilder />} />
           <Route path="/monitoring" element={<LiveMonitoring />} />
           <Route path="/monitoring/:experimentId" element={<LiveMonitoring />} />
-          <Route path="/scalability" element={<Scalability />} />
+          <Route path="/load_testing" element={<LoadTesting />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

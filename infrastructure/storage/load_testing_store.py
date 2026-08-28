@@ -1,4 +1,4 @@
-"""File-backed persistence for model scalability measurements."""
+"""File-backed persistence for model load_testing measurements."""
 
 from __future__ import annotations
 
@@ -6,19 +6,19 @@ import json
 import threading
 from pathlib import Path
 
-from infrastructure.storage.paths import SCALABILITY_RESULTS_DIR, ensure_directories
+from infrastructure.storage.paths import LOAD_TESTING_RESULTS_DIR, ensure_directories
 from infrastructure.storage.result_store import sanitize_model_name
-from infrastructure.storage.schemas import ScalabilityResult
+from infrastructure.storage.schemas import LoadTestingResult
 
 
-class ScalabilityStore:
+class LoadTestingStore:
     def __init__(self, directory: Path | None = None):
         ensure_directories()
-        self._dir = directory or SCALABILITY_RESULTS_DIR
+        self._dir = directory or LOAD_TESTING_RESULTS_DIR
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
 
-    def append(self, result: ScalabilityResult) -> Path:
+    def append(self, result: LoadTestingResult) -> Path:
         with self._lock:
             path = self._dir / f"{sanitize_model_name(result.model)}.json"
             existing = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
@@ -26,12 +26,12 @@ class ScalabilityStore:
             path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
             return path
 
-    def latest(self) -> list[ScalabilityResult]:
+    def latest(self) -> list[LoadTestingResult]:
         with self._lock:
-            latest: dict[tuple[str, str, int], ScalabilityResult] = {}
+            latest: dict[tuple[str, str, int], LoadTestingResult] = {}
             for path in self._dir.glob("*.json"):
                 for item in json.loads(path.read_text(encoding="utf-8")):
-                    result = ScalabilityResult.model_validate(item)
+                    result = LoadTestingResult.model_validate(item)
                     key = (result.model, result.provider, result.users)
                     if key not in latest or result.timestamp > latest[key].timestamp:
                         latest[key] = result
@@ -48,4 +48,4 @@ class ScalabilityStore:
             return True
 
 
-scalability_store = ScalabilityStore()
+load_testing_store = LoadTestingStore()

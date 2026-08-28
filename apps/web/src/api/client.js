@@ -34,11 +34,11 @@ export const api = {
     request(`/experiments/${experimentId}/logs/${jobId}?tail=${tail}`),
 
   getResultsMatrix: () => request(`/results?_=${Date.now()}`),
-  getScalabilityResults: () => request("/results/scalability"),
+  getLoadTestingResults: () => request("/results/load_testing"),
   getModelResults: (model) => request(`/results/${encodeURIComponent(model)}`),
   getDetailedResult: (model, benchmark) =>
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}`),
   deleteDetailedResult: (model, benchmark, timestamp) =>
     request(`/results/${encodeURIComponent(model)}/${encodeURIComponent(benchmark)}?timestamp=${encodeURIComponent(timestamp)}`, { method: "DELETE" }),
-  deleteScalabilityResult: (result) => request(`/results/scalability/${encodeURIComponent(result.model)}/${encodeURIComponent(result.provider)}/${result.users}?timestamp=${encodeURIComponent(result.timestamp)}`, { method: "DELETE" }),
+  deleteLoadTestingResult: (result) => request(`/results/load_testing/${encodeURIComponent(result.model)}/${encodeURIComponent(result.provider)}/${result.users}?timestamp=${encodeURIComponent(result.timestamp)}`, { method: "DELETE" }),
 };

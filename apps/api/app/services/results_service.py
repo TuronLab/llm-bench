@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 
 from infrastructure.storage.result_store import result_store
-from infrastructure.storage.scalability_store import scalability_store
+from infrastructure.storage.load_testing_store import load_testing_store
 from infrastructure.storage.schemas import BenchmarkResult
 
 logger = logging.getLogger("benchlab.services.results")
@@ -33,9 +33,9 @@ def delete_latest_result(model: str, benchmark: str, timestamp: str | None = Non
     return result_store.delete_latest(model, benchmark, timestamp)
 
 
-def scalability_results() -> list[dict]:
+def load_testing_results() -> list[dict]:
     """Latest load-test result for every model/provider/concurrency combination."""
-    return [result.model_dump(mode="json") for result in scalability_store.latest()]
+    return [result.model_dump(mode="json") for result in load_testing_store.latest()]
 
-def delete_scalability_result(model: str, provider: str, users: int, timestamp: str) -> bool:
-    return scalability_store.delete(model, provider, users, timestamp)
+def delete_load_testing_result(model: str, provider: str, users: int, timestamp: str) -> bool:
+    return load_testing_store.delete(model, provider, users, timestamp)

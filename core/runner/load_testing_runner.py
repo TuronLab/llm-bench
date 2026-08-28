@@ -14,15 +14,15 @@ from urllib.parse import unquote, urlparse
 import httpx
 
 from infrastructure.providers.base import Provider, ProviderError
-from infrastructure.storage.schemas import ScalabilityConfig, ScalabilityResult
+from infrastructure.storage.schemas import LoadTestingConfig, LoadTestingResult
 from core.runner.harness_runner import _resources, metric_provider_options
 
 
-def run_scalability_test(provider: Provider, model: str, config: ScalabilityConfig, users: int) -> ScalabilityResult:
+def run_load_testing_test(provider: Provider, model: str, config: LoadTestingConfig, users: int) -> LoadTestingResult:
     """Run a burst of concurrent streaming requests and summarize its performance."""
     endpoint = provider.endpoint().rstrip("/")
     if not endpoint:
-        raise ProviderError("Scalability tests require a provider with an OpenAI-compatible HTTP endpoint")
+        raise ProviderError("LoadTesting tests require a provider with an OpenAI-compatible HTTP endpoint")
     input_text = _load_input(config.input)
 
     total_requests = users * config.requests_per_user
@@ -71,7 +71,7 @@ def run_scalability_test(provider: Provider, model: str, config: ScalabilityConf
     extra_conf = {"input": config.input}
     if safe_options:
         extra_conf["provider_options"] = safe_options
-    return ScalabilityResult(
+    return LoadTestingResult(
         model=model,
         provider=provider.config.name,
         users=users,
@@ -106,14 +106,14 @@ def _load_input(value: str) -> str:
         path_value = f"//{parsed.netloc}{path_value}"
     path = Path(path_value)
     if path.suffix.lower() not in {".txt", ".md"}:
-        raise ProviderError(f"Scalability input file must be .txt or .md: '{path}'")
+        raise ProviderError(f"LoadTesting input file must be .txt or .md: '{path}'")
     try:
         return path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise ProviderError(f"Could not read scalability input file '{path}': {exc}") from exc
+        raise ProviderError(f"Could not read load_testing input file '{path}': {exc}") from exc
 
 
-def _stream_request(provider: Provider, endpoint: str, model: str, config: ScalabilityConfig, input_text: str, start_gate: threading.Event) -> dict[str, Any]:
+def _stream_request(provider: Provider, endpoint: str, model: str, config: LoadTestingConfig, input_text: str, start_gate: threading.Event) -> dict[str, Any]:
     start_gate.wait()
     headers = {"Authorization": f"Bearer {provider.api_key()}"} if provider.api_key() else {}
     payload = {

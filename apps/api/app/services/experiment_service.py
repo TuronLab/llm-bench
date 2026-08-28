@@ -51,12 +51,12 @@ from typing import Optional
 from infrastructure.providers.base import Provider, ProviderConfig, ProviderError
 from infrastructure.providers.registry import create_provider
 from core.runner.harness_runner import run_benchmark
-from core.runner.scalability_runner import run_scalability_test
+from core.runner.load_testing_runner import run_load_testing_test
 from core.scheduler.job import ScheduledJob
 from core.scheduler.scheduler import Scheduler
 from infrastructure.storage.experiment_store import experiment_store
 from infrastructure.storage.result_store import result_store
-from infrastructure.storage.scalability_store import scalability_store
+from infrastructure.storage.load_testing_store import load_testing_store
 from infrastructure.storage.schemas import (
     ExperimentDefinition,
     ExperimentRecord,
@@ -100,17 +100,17 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
         for model in definition.models
         for benchmark in definition.benchmarks
     ]
-    if definition.scalability:
+    if definition.load_testing:
         jobs.extend(
             JobRecord(
                 experiment_id="",
                 provider_name=provider_name,
                 model=model,
-                benchmark=f"scalability-{users}",
-                kind="scalability",
+                benchmark=f"load_testing-{users}",
+                kind="load_testing",
             )
             for model in definition.models
-            for users in definition.scalability.users
+            for users in definition.load_testing.users
         )
     record = ExperimentRecord(definition=definition, status=ExperimentStatus.DRAFT, jobs=jobs)
     for job in record.jobs:
@@ -348,14 +348,14 @@ def _start_provider(provider: Provider) -> None:
 
 def _make_job_runner(provider: Provider, job: JobRecord, definition: ExperimentDefinition):
     def _runner() -> None:
-        if job.kind == "scalability":
-            if definition.scalability is None:  # Defensive: persisted malformed job.
-                raise RuntimeError("Scalability job is missing its configuration")
-            users = int(job.benchmark.removeprefix("scalability-"))
-            result = run_scalability_test(
-                provider=provider, model=job.model, config=definition.scalability, users=users
+        if job.kind == "load_testing":
+            if definition.load_testing is None:  # Defensive: persisted malformed job.
+                raise RuntimeError("LoadTesting job is missing its configuration")
+            users = int(job.benchmark.removeprefix("load_testing-"))
+            result = run_load_testing_test(
+                provider=provider, model=job.model, config=definition.load_testing, users=users
             )
-            path = scalability_store.append(result)
+            path = load_testing_store.append(result)
             job.result_path = str(path)
             return
         result = run_benchmark(

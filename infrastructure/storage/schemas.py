@@ -56,7 +56,7 @@ class ProviderSpec(BaseModel):
     supports_concurrency: bool = False
 
 
-class ScalabilityConfig(BaseModel):
+class LoadTestingConfig(BaseModel):
     """Load-test settings. Each entry in ``users`` becomes one job per model."""
 
     users: list[Annotated[int, Field(ge=1)]] = Field(..., min_length=1, description="Concurrent users to test")
@@ -77,7 +77,7 @@ class ExperimentDefinition(BaseModel):
     benchmarks: list[str] = Field(default_factory=list)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
     extra_harness_args: dict[str, Any] = Field(default_factory=dict)
-    scalability: Optional[ScalabilityConfig] = None
+    load_testing: Optional[LoadTestingConfig] = None
 
 
 class JobRecord(BaseModel):
@@ -142,7 +142,7 @@ class BenchmarkResult(BaseModel):
     raw: Optional[dict[str, Any]] = Field(default=None, description="Full, untouched harness output")
 
 
-class ScalabilityResult(BaseModel):
+class LoadTestingResult(BaseModel):
     """One load-test measurement for a model/provider/concurrency level."""
 
     model: str

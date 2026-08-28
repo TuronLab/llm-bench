@@ -160,10 +160,10 @@ candidate). Other harness options such as `seed`, `gen_kwargs`, `include_path`,
 and `trust_remote_code` may be useful depending on the task and provider, but
 must be checked against the installed harness version and task requirements.
 
-## Scalability tests
+## LoadTesting tests
 
 An experiment can also measure streamed chat-completion performance while the
-number of simultaneous virtual users increases. Add a `scalability` section;
+number of simultaneous virtual users increases. Add a `load_testing` section;
 each value in `users` creates one load-test job for each model. `input` is sent
 by every virtual user and `max_output_tokens` limits each response. The input
 can be literal text or a `file://` URI. Files are read as UTF-8 before the test
@@ -175,7 +175,7 @@ running the experiment (normally the backend container).
 ```yaml
 models:
   - llama3.2:1b
-scalability:
+load_testing:
   users: [1, 2, 4, 8]
   input: "file://./experiments/inputs/transformers.md"
   max_output_tokens: 128
@@ -184,7 +184,7 @@ scalability:
   timeout_seconds: 120
 ```
 
-Results appear in the web UI's **Scalability** tab. It reports TTFT (time to
+Results appear in the web UI's **LoadTesting** tab. It reports TTFT (time to
 first token), p95 total latency, aggregate output throughput, perceived
 per-request output speed, and failed requests for each model/provider/user
 level. Providers that do not include

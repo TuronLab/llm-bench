@@ -16,10 +16,10 @@ def list_results():
     }
 
 
-@router.get("/scalability")
-def list_scalability_results():
+@router.get("/load_testing")
+def list_load_testing_results():
     """Latest model load-test measurements, grouped client-side for comparison."""
-    return {"results": results_service.scalability_results()}
+    return {"results": results_service.load_testing_results()}
 
 
 @router.get("/{model}")
@@ -40,9 +40,9 @@ def get_detailed_result(model: str, benchmark: str):
         )
     return result
 
-@router.delete("/scalability/{model}/{provider}/{users}")
-def delete_scalability_result(model: str, provider: str, users: int, timestamp: str):
-    if not results_service.delete_scalability_result(model, provider, users, timestamp):
+@router.delete("/load_testing/{model}/{provider}/{users}")
+def delete_load_testing_result(model: str, provider: str, users: int, timestamp: str):
+    if not results_service.delete_load_testing_result(model, provider, users, timestamp):
         raise HTTPException(status_code=404, detail="Result not found")
     return {"deleted": True}
 
