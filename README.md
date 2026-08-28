@@ -10,10 +10,6 @@ The project is intended for controlled comparisons that public leaderboards do n
 
 To use `llm-bench`, start `backend`, which runs evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
 
-Prerequisites: Docker Engine 24+ and Docker Compose v2. The default installation and
-quickstart are CPU-only; install the NVIDIA Container Toolkit only if you explicitly
-enable GPU-backed providers.
-
 ```bash
 docker compose up -d --build backend frontend
 docker compose run --build --rm cli experiment run experiments/examples/quickstart.yaml
@@ -32,6 +28,10 @@ docker compose run --rm cli experiment run experiments/my-comparison.yaml
 ```
 
 Use the dashboard's **New Experiment** screen instead if you prefer not to edit YAML.
+
+> **Note:** Docker Engine 24+ and Docker Compose v2 are required. The default
+> installation and quickstart are CPU-only; install the NVIDIA Container Toolkit
+> only if you explicitly enable GPU-backed providers.
 
 ## CLI installation and use
 
@@ -82,17 +82,19 @@ If the backend also runs natively on macOS, use `host: localhost` instead.
 The benchmark backend can remain in Docker; only the Ollama model server needs
 to run natively to access Metal.
 
+
 ## Comparing model variants fairly
 
-An experiment produces one job for every `(model, benchmark)` pair. To make a meaningful decision between a quantized large model and a smaller full-precision model, keep these inputs identical:
+An experiment can evaluate benchmark quality, measure serving performance under load, or do both. To make a meaningful comparison between model variants, keep the relevant inputs identical:
 
-- benchmark tasks and `extra_harness_args` (especially `limit`, `num_fewshot`, and batch size);
-- provider and prompting/API mode where possible;
-- model revision, quantization, and serving settings recorded in the experiment definition.
+- for benchmarks: the task list and `extra_harness_args` (especially `limit`, `num_fewshot`, and batch size);
+- for load tests: the prompt, output-token limit, request rate/concurrency levels, and timeout settings;
+- for both: the provider and prompting/API mode where possible, as well as the model revision, quantization, and serving settings recorded in the experiment definition.
 
-The framework compares evaluation quality; it also records duration, but it is not a dedicated latency/load-testing tool. A model identifier alone is not always enough to describe a variant, so put the exact Hugging Face revision, Ollama tag, or GGUF filename in the experiment and retain the YAML with the result.
+The framework records benchmark scores, execution duration, and load-test metrics such as latency and throughput. A model identifier alone is not always enough to describe a variant, so put the exact Hugging Face revision, Ollama tag, or GGUF filename in the experiment and retain the YAML with the result.
 
 See [providers and experiment definitions](docs/providers.md) for concrete vLLM, Ollama, llama.cpp, and remote-API examples.
+
 
 ## Benchmarks
 
