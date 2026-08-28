@@ -12,11 +12,11 @@ The CLI is available as the native `llm-bench` command or as the Compose `cli` c
 
 ## What happens when an experiment runs
 
-1. The API validates and persists an experiment definition.
+1. The API validates and persists an **experiment definition**.
 2. It creates one job for each provider/model/benchmark combination and, when configured, each provider/model/concurrency-level combination for load testing.
 3. For each configured provider, it constructs an instance from the registry.
 4. The provider starts a Docker container, loads a local model, or connects to an existing remote service.
-5. Once ready, the appropriate runner executes either `lm_eval` benchmarks or concurrent streaming load tests.
+5. Once ready, the appropriate runner executes either `lm_eval` benchmarks or **concurrent streaming load tests**.
 6. Results, experiment state, and logs are persisted; managed providers are stopped unless `keep_alive` is enabled.
 
 vLLM and llama.cpp serve one selected model per process, so the API starts a fresh instance for each model. Ollama and OpenAI-compatible APIs can be reused across the models in an experiment. When multiple providers are configured, the complete experiment matrix is executed for each provider.
@@ -29,7 +29,7 @@ Failure isolation is intentional: a failed job does not prevent later jobs from 
 
 ## Persistence
 
-`infrastructure/storage/` is the persistence boundary. The default backend writes experiment definitions and results as JSON files under `experiments/` and `results/`, with job logs under `logs/`. The optional SQLite backend stores experiment state, benchmark results, and load-test results in a single database file. Both backends implement the same storage contracts, so the scheduler, runners, and providers do not depend on the selected format.
+`infrastructure/storage/` is the persistence boundary. The default backend writes experiment definitions and results as **JSON files** under `experiments/` and `results/`, with job logs under `logs/`. The optional **SQLite backend** stores experiment state, benchmark results, and load-test results in a single database file. Both backends implement the same storage contracts, so the scheduler, runners, and providers do not depend on the selected format.
 
 ## Extending a provider
 

@@ -9,20 +9,20 @@
 Self-hosted framework for evaluating LLM deployments across inference backends.
 
 It provides a complete way to evaluate an LLM deployment from two complementary
-angles: benchmark-based quality evaluation with
+angles: **benchmark-based quality evaluation** with
 [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness), and
-performance testing under concurrent load. You can compare accuracy and
-generation quality while also measuring time to first token, latency,
+**performance testing under concurrent load**. You can compare accuracy and
+generation quality while also measuring *time to first token*, latency,
 throughput, output speed, and error rates across models and providers. The
 framework orchestrates the providers, persists experiment definitions, logs,
 raw output, and metrics, and exposes the same workflow through a REST API, CLI,
 and web dashboard. Docker images install Python dependencies with
 [uv](https://docs.astral.sh/uv/) for faster, cached builds.
 
-The project is intended for controlled comparisons that public leaderboards do not always cover: model revisions, quantized variants, and configurations deployed on your own hardware. It supports vLLM, Ollama, llama.cpp/GGUF, and existing OpenAI-compatible APIs.
+The project is intended for controlled comparisons that public leaderboards do not always cover: model revisions, quantized variants, and configurations deployed on your own hardware. It supports **vLLM**, **Ollama**, **llama.cpp/GGUF**, and existing **∫OpenAI-compatible APIs**∫.
 
-All experiment results and execution state can be persisted either as JSON files
-or in a SQLite database, depending on the selected storage backend.
+All experiment results and execution state can be persisted either as **JSON
+files** or in a **SQLite database**, depending on the selected storage backend.
 
 ## Quick start
 
@@ -37,7 +37,9 @@ This starts the API and dashboard, downloads the two small Ollama models in the 
 
 You can run the same experiment with the native `llm-bench` command after installing it; see the next section.
 
-The quickstart evaluates two small models on a limited sample. For a real comparison, copy the template and give both candidates the same benchmark list and harness options:
+The quickstart evaluates two small models on a limited sample. For a *real
+comparison*, copy the template and give both candidates the same benchmark list
+and harness options:
 
 ```bash
 cp infrastructure/templates/experiment_template.yaml experiments/my-comparison.yaml

@@ -4,7 +4,7 @@ Experiments can define common generation parameters under `generation`. These
 settings are used by benchmark runs (through `gen_kwargs`) and by load tests
 when the provider supports the corresponding OpenAI-compatible request field.
 
-All fields are optional. When a field is omitted, the provider or evaluation
+All fields are *optional*. When a field is omitted, the provider or evaluation
 tool uses its own default. Omitted fields are not included in the result's
 `extra_conf`, so the displayed configuration only contains values explicitly
 chosen in the experiment.

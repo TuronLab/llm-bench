@@ -1,7 +1,7 @@
 
 # Load testing
 
-Load testing measures how an OpenAI-compatible streaming chat endpoint behaves
+**Load testing** measures how an OpenAI-compatible streaming chat endpoint behaves
 when several requests are active at the same time. It is a burst test: it
 compares configured concurrency levels, rather than simulating a sustained
 production traffic pattern.
