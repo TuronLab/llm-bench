@@ -6,6 +6,9 @@ It orchestrates inference providers, runs [lm-evaluation-harness](https://github
 
 The project is intended for controlled comparisons that public leaderboards do not always cover: model revisions, quantized variants, and configurations deployed on your own hardware. It supports vLLM, Ollama, llama.cpp/GGUF, and existing OpenAI-compatible APIs.
 
+All experiment results and execution state can be persisted either as JSON files
+or in a SQLite database, depending on the selected storage backend.
+
 ## Quick start
 
 To use `llm-bench`, start `backend`, which runs evaluations, and `frontend`, the browser dashboard for creating comparisons, tracking progress, and reviewing scores.
@@ -224,6 +227,12 @@ infrastructure/       Adapters and operational assets
   docker/             Dockerfiles and nginx configuration
   templates/          Experiment template
 experiments/          Example definitions and persisted experiment records
+docs/                 Markdown documentation
+  architecture.md     System architecture
+  benchmarks.md       Supported benchmark tasks
+  generation.md       Generation parameters
+  load_testing.md     Load-test configuration and metrics
+  providers.md        Provider configuration
 results/              Persisted results
   benchmarks/         Persisted benchmark results
   load_testing/       Persisted load-test results
@@ -299,17 +308,16 @@ Provider option templates live in [`infrastructure/configs/providers/`](infrastr
 
 - [Architecture and execution model](docs/architecture.md)
 - [Providers and experiment definitions](docs/providers.md)
+- [Generation settings](docs/generation.md)
 - [Load testing metrics and request execution](docs/load_testing.md)
 - [Supported benchmarks](docs/benchmarks.md)
 - [Experiment template](infrastructure/templates/experiment_template.yaml)
 - [Quickstart experiment](experiments/examples/quickstart.yaml)
 
-## Development
+## License
 
-```bash
-uv sync --group api
-export BENCHLAB_ROOT=$(pwd)
-uv run --group api uvicorn apps.api.app.main:app --reload
-```
+This project is released under the [MIT License](LICENSE).
 
-For the web application, run `npm install && npm run dev` from `apps/web/`. Provider containers still require Docker because the API manages them through the Docker socket.
+## Author
+
+Created and maintained by [Pablo Turón](https://github.com/TuronLab).
