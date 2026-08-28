@@ -56,7 +56,7 @@ benchmarks:
 
 load_testing:
   concurrent_users: [1, 2, 4]
-  input: "Tell me a short story about a robot."  # You can also refer to a `txt` or `md` file with the prefix `file`. For example "file://path/to/md"
+  input: "Tell me a short story about a robot."  # You can also refer to a `txt` or `md` file with the prefix `file`. For example "file://path/to/yourfile.md"
   max_output_tokens: 64
   requests_per_user: 5
 ```
