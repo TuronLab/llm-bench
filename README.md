@@ -134,7 +134,7 @@ core/                 Provider-independent execution
   scheduler/          Job ordering, parallelism, and failure isolation
 infrastructure/       Adapters and operational assets
   providers/          vLLM, Ollama, llama.cpp, OpenAI-compatible adapters
-  storage/            JSON persistence and shared data models
+  storage/            Pluggable JSON/SQLite persistence and shared data models
   configs/            Provider option templates
   docker/             Dockerfiles and nginx configuration
   templates/          Experiment template
@@ -168,13 +168,46 @@ The CLI is a REST client: it expects an API service at `BENCHLAB_API_URL` (defau
 
 ## Data and configuration
 
-```text
-experiments/<id>.json       experiment definition, jobs, and status
-results/benchmarks/<model>.json historical benchmark result entries for that model
-logs/<experiment>/<job>.log lm-evaluation-harness output
+BenchLab supports two persistence backends, selectable with
+`BENCHLAB_PERSISTENCE`:
+
+- `json` (default): readable files on disk, compatible with existing data.
+- `sqlite`: one local database file containing experiments and all results.
+
+For JSON explicitly:
+
+```bash
+export BENCHLAB_PERSISTENCE=json
 ```
 
-Path overrides use `BENCHLAB_EXPERIMENTS_DIR`, `BENCHLAB_RESULTS_DIR`, and `BENCHLAB_LOGS_DIR`. Docker Compose sets these paths for the containers. Provider option templates live in [`infrastructure/configs/providers/`](infrastructure/configs/providers/).
+The JSON layout is:
+
+```text
+experiments/<id>.json                 experiment definition, jobs, and status
+results/benchmarks/<model>.json       benchmark result history per model
+results/load_testing/<model>.json     load-testing result history per model
+logs/<experiment>/<job>.log           lm-evaluation-harness output
+```
+
+To store experiment state plus benchmark and load-testing results in one local
+SQLite file, start the backend with:
+
+```bash
+export BENCHLAB_PERSISTENCE=sqlite
+# Optional; defaults to results/benchlab.db
+export BENCHLAB_SQLITE_PATH=/data/benchlab.db
+```
+
+With Docker Compose, exporting `BENCHLAB_PERSISTENCE=sqlite` before `docker
+compose up` selects the same backend; the database is then persisted in the
+host `results/` directory.
+
+The REST API, CLI, and web interface use the same persistence contract, so no
+interface changes are needed. JSON remains the default and is not migrated or
+deleted automatically when SQLite is selected; this makes rollback safe. Path
+overrides also include `BENCHLAB_EXPERIMENTS_DIR`, `BENCHLAB_RESULTS_DIR`, and
+`BENCHLAB_LOGS_DIR`. Docker Compose sets these paths for the containers.
+Provider option templates live in [`infrastructure/configs/providers/`](infrastructure/configs/providers/).
 
 ## Further reading
 

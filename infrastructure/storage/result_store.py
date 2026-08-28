@@ -175,4 +175,8 @@ def _aggregate_scores(scores: list[dict]) -> dict:
     }
 
 
-result_store = ResultStore()
+# Keep the module-level name stable for API services and third-party callers;
+# only the implementation changes with the configured persistence backend.
+from infrastructure.storage.persistence import persistence_backend, sqlite_store  # noqa: E402
+
+result_store = sqlite_store() if persistence_backend() == "sqlite" else ResultStore()

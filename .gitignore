@@ -15,6 +15,8 @@ experiments/.state/
 results/*.json
 results/load_testing/*.json
 results/benchmarks/*.json
+results/*.db
+results/*.db-*
 logs/*
 
 !experiments/examples/

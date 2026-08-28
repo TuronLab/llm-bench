@@ -19,6 +19,7 @@ EXPERIMENTS_DIR = Path(os.environ.get("BENCHLAB_EXPERIMENTS_DIR", PROJECT_ROOT /
 RESULTS_DIR = Path(os.environ.get("BENCHLAB_RESULTS_DIR", PROJECT_ROOT / "results"))
 BENCHMARK_RESULTS_DIR = Path(os.environ.get("BENCHLAB_BENCHMARK_RESULTS_DIR", RESULTS_DIR / "benchmarks"))
 LOAD_TESTING_RESULTS_DIR = Path(os.environ.get("BENCHLAB_LOAD_TESTING_RESULTS_DIR", RESULTS_DIR / "load_testing"))
+SQLITE_PATH = Path(os.environ.get("BENCHLAB_SQLITE_PATH", RESULTS_DIR / "benchlab.db"))
 LOGS_DIR = Path(os.environ.get("BENCHLAB_LOGS_DIR", PROJECT_ROOT / "logs"))
 CONFIGS_DIR = Path(os.environ.get("BENCHLAB_CONFIGS_DIR", PROJECT_ROOT / "infrastructure" / "configs"))
 

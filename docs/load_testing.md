@@ -128,5 +128,7 @@ values of `concurrent_users` can also be limited by client threads, operating
 system file descriptors, HTTP connections, provider queues, memory, or request
 timeouts.
 
-Results are stored as JSON under `results/load_testing/`, with one file per
-model. Benchmark results use the separate `results/benchmarks/` directory.
+With the default backend, results are stored as JSON under `results/load_testing/`, with one file per
+model. Benchmark results use the separate `results/benchmarks/` directory. With
+`BENCHLAB_PERSISTENCE=sqlite`, both result types and experiment state are stored
+in `results/benchlab.db` (or `BENCHLAB_SQLITE_PATH`).

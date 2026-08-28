@@ -62,4 +62,12 @@ class LoadTestingStore:
             return True
 
 
-load_testing_store = LoadTestingStore()
+from infrastructure.storage.persistence import (  # noqa: E402
+    SQLiteLoadTestingRepository,
+    persistence_backend,
+    sqlite_store,
+)
+
+load_testing_store = (
+    SQLiteLoadTestingRepository(sqlite_store()) if persistence_backend() == "sqlite" else LoadTestingStore()
+)

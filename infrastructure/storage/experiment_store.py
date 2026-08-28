@@ -67,4 +67,6 @@ class ExperimentStore:
 
 # Module-level singleton for convenience; safe because the store itself is
 # stateless beyond the filesystem and internally locked.
-experiment_store = ExperimentStore()
+from infrastructure.storage.persistence import persistence_backend, sqlite_store  # noqa: E402
+
+experiment_store = sqlite_store() if persistence_backend() == "sqlite" else ExperimentStore()

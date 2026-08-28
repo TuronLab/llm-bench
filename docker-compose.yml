@@ -32,6 +32,8 @@ services:
       BENCHLAB_EXPERIMENTS_DIR: /app/experiments
       BENCHLAB_RESULTS_DIR: /app/results
       BENCHLAB_LOGS_DIR: /app/logs
+      BENCHLAB_PERSISTENCE: ${BENCHLAB_PERSISTENCE:-sqlite}
+      BENCHLAB_SQLITE_PATH: ${BENCHLAB_SQLITE_PATH:-/app/results/benchlab.db}
       BENCHLAB_CORS_ORIGINS: "*"
       BENCHLAB_LOG_LEVEL: INFO
     volumes:
