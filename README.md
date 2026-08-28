@@ -2,7 +2,16 @@
 
 Self-hosted framework for evaluating LLM deployments across inference backends.
 
-It orchestrates inference providers, runs [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)—an open-source tool for running LLM benchmarks locally—and persists experiment definitions, execution logs, raw harness output, and metrics. The same workflow is available through a REST API, CLI, and web dashboard. Docker images install Python dependencies with [uv](https://docs.astral.sh/uv/) for faster, cached builds.
+It provides a complete way to evaluate an LLM deployment from two complementary
+angles: benchmark-based quality evaluation with
+[lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness), and
+performance testing under concurrent load. You can compare accuracy and
+generation quality while also measuring time to first token, latency,
+throughput, output speed, and error rates across models and providers. The
+framework orchestrates the providers, persists experiment definitions, logs,
+raw output, and metrics, and exposes the same workflow through a REST API, CLI,
+and web dashboard. Docker images install Python dependencies with
+[uv](https://docs.astral.sh/uv/) for faster, cached builds.
 
 The project is intended for controlled comparisons that public leaderboards do not always cover: model revisions, quantized variants, and configurations deployed on your own hardware. It supports vLLM, Ollama, llama.cpp/GGUF, and existing OpenAI-compatible APIs.
 
