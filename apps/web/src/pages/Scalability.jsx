@@ -11,6 +11,16 @@ const formatMetadata = (value, prefix = "") => {
   ).join("\n");
 };
 
+function Metadata({ value, indent = 0 }) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "object") return <span>{String(value)}</span>;
+  return Object.entries(value).map(([key, item]) => (
+    <div key={`${indent}-${key}`} style={{ paddingLeft: `${indent * 2}ch` }}>
+      <strong>{key}:</strong>{typeof item === "object" && item !== null ? <Metadata value={item} indent={indent + 1} /> : ` ${item}`}
+    </div>
+  ));
+}
+
 function MetricHelp() {
   return <details className="panel metric-help">
     <summary>What does each metric mean?</summary>
@@ -94,9 +104,9 @@ export default function Scalability() {
             {groupedRows.map((row) => {
               const showModel = row.model !== previousModel;
               previousModel = row.model;
-              return <tr key={`${row.model}-${row.provider}`}>
+              return <tr key={`${row.model}-${row.provider}-${JSON.stringify(row.metadata)}`}>
                 {showModel && <td rowSpan={modelCounts[row.model]}>{row.model}</td>}
-                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{formatMetadata({ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}) })}</td>
+                <td>{row.provider}</td><td title={formatMetadata(row.metadata)} style={{ textAlign: "left" }}><Metadata value={{ ...(row.metadata.common || {}), ...(row.metadata.extra_conf || {}), ...(row.metadata.resources || {}) }} /></td>
                 {users.flatMap((level) => {
                   const result = row.values[level];
                   const metrics = result?.metrics;
