@@ -32,7 +32,7 @@ function MetricHelp() {
       <dt>Errors</dt><dd>Failed requests relative to the total, displayed as failed/total.</dd>
       <dt>users</dt><dd>Number of requests kept active simultaneously at that load level.</dd>
     </dl>
-    <p className="metric-note">p50 is the median; p95 means that 95% of requests completed within that time or less. An asterisk (*) indicates that the token count was estimated because the provider did not report actual usage.</p>
+    <p className="metric-note">(*) indicates that the token count was estimated because the provider did not report actual usage.</p>
   </details>;
 }
 
