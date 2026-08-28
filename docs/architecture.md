@@ -1,8 +1,3 @@
----
-title: Architecture and execution model
-permalink: /architecture/
----
-
 # Architecture and execution model
 
 ## The two meanings of “backend”

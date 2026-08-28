@@ -1,8 +1,3 @@
----
-title: Supported benchmarks
-permalink: /benchmarks/
----
-
 # Supported benchmarks
 
 This framework delegates evaluation to [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness), an open-source framework for running LLM benchmarks locally. It does not implement or maintain benchmark logic itself.

@@ -1,7 +1,3 @@
----
-title: Load testing
-permalink: /load-testing/
----
 
 # Load testing
 
