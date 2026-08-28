@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from infrastructure.storage.paths import LOAD_TESTING_RESULTS_DIR, ensure_directories
 from infrastructure.storage.result_store import sanitize_model_name
@@ -35,6 +36,16 @@ class LoadTestingStore:
             for path in self._dir.glob("*.json"):
                 for item in json.loads(path.read_text(encoding="utf-8")):
                     result = LoadTestingResult.model_validate(item)
+                    if not result.prompt and result.input.startswith("file://"):
+                        parsed = urlparse(result.input)
+                        prompt_path = Path(unquote(parsed.path))
+                        if parsed.netloc in (".", ".."):
+                            prompt_path = Path(f"{parsed.netloc}{parsed.path}")
+                        try:
+                            result.prompt = prompt_path.read_text(encoding="utf-8")
+                            result.input_filename = prompt_path.name
+                        except OSError:
+                            pass
                     key = (result.model, result.provider, result.users, json.dumps(result.metadata, sort_keys=True, default=str))
                     if key not in latest or result.timestamp > latest[key].timestamp:
                         latest[key] = result
