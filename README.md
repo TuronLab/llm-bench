@@ -165,6 +165,13 @@ penalties are documented in [generation settings](docs/generation.md).
 
 ## How it works
 
+### Benchmarks
+
+For benchmark experiments, the API starts or connects to each configured
+provider, schedules one job for every provider/model/benchmark combination, and
+runs `lm-evaluation-harness`. Results contain the benchmark metrics, execution
+metadata, logs, and the exact provider and generation configuration used.
+
 ```text
 Web dashboard or `bench` CLI
               |
@@ -172,12 +179,31 @@ Web dashboard or `bench` CLI
         FastAPI application
               |
               +-- starts/reuses a provider (vLLM, Ollama, llama.cpp, remote API)
-              +-- schedules benchmark and load-test jobs per model × provider
-              +-- runs lm-evaluation-harness and load tests
+              +-- schedules one job per provider × model × benchmark
+              +-- runs lm-evaluation-harness
               `-- stores results and logs
 ```
 
-Provider containers are created on demand by the API, not declared as permanent Compose services. They are stopped after an experiment unless `keep_alive: true` is set. A failed model or benchmark does not stop the remaining jobs.
+### Load testing
+
+For load-testing experiments, the API starts or connects to each configured
+provider, then schedules one job for every provider/model/concurrency-level
+combination. Each job sends concurrent streaming requests and records TTFT,
+latency, throughput, output speed, and errors.
+
+```text
+Web dashboard or `bench` CLI
+              |
+              v
+        FastAPI application
+              |
+              +-- starts/reuses a provider
+              +-- schedules one job per provider × model × concurrency level
+              +-- sends concurrent streaming chat-completion requests
+              `-- stores load-test results and logs
+```
+
+Provider containers are created on demand by the API, not declared as permanent Compose services. They are stopped after an experiment unless `keep_alive: true` is set. A failed model, benchmark, or load-test job does not stop the remaining jobs.
 
 For the lifecycle, concurrency rules, and the distinction between the application backend and a model-serving backend, read [architecture](docs/architecture.md).
 
