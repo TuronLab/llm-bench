@@ -22,11 +22,6 @@ LOAD_TESTING_RESULTS_DIR = Path(os.environ.get("BENCHLAB_LOAD_TESTING_RESULTS_DI
 LOGS_DIR = Path(os.environ.get("BENCHLAB_LOGS_DIR", PROJECT_ROOT / "logs"))
 CONFIGS_DIR = Path(os.environ.get("BENCHLAB_CONFIGS_DIR", PROJECT_ROOT / "infrastructure" / "configs"))
 
-# State file tracking running/completed/failed jobs so experiments survive
-# API service restarts (see infrastructure/storage/experiment_store.py).
-STATE_DB_PATH = Path(os.environ.get("BENCHLAB_STATE_DB", EXPERIMENTS_DIR / ".state" / "state.json"))
-
-
 def ensure_directories() -> None:
-    for path in (EXPERIMENTS_DIR, RESULTS_DIR, BENCHMARK_RESULTS_DIR, LOAD_TESTING_RESULTS_DIR, LOGS_DIR, CONFIGS_DIR, STATE_DB_PATH.parent):
+    for path in (EXPERIMENTS_DIR, RESULTS_DIR, BENCHMARK_RESULTS_DIR, LOAD_TESTING_RESULTS_DIR, LOGS_DIR, CONFIGS_DIR):
         path.mkdir(parents=True, exist_ok=True)
