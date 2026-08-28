@@ -8,20 +8,20 @@ Start from [`infrastructure/templates/experiment_template.yaml`](https://github.
 
 Use identifiers that make the variant unambiguous and run the same tasks with the same harness arguments. For example, an Ollama comparison might use tags such as `model:7b-q4_K_M` and `model:3b-fp16` if those are the exact locally available variants. The labels are illustrative: use the tags your registry actually exposes.
 
-For vLLM and llama.cpp, a provider instance serves one model, so the framework starts it separately for each entry in `models`. Use a precise Hugging Face model/revision for vLLM; for llama.cpp, each item in `models` should be the precise GGUF file path (it becomes that instance's `model_path`).
+The `providers` field is always a list, even when the experiment uses only one provider. The framework repeats the experiment matrix for every provider in that list. For vLLM and llama.cpp, a provider instance serves one model, so the framework starts it separately for each entry in `models`. Use a precise Hugging Face model/revision for vLLM; for llama.cpp, each item in `models` should be the precise GGUF file path (it becomes that instance's `model_path`).
 
 ```yaml
 name: model-size-vs-quantization
 description: "Same tasks and few-shot settings for a local Ollama comparison."
 
-provider:
-  type: ollama
-  options:
-    manage: true
-    gpus: false  # opt in only on a host with NVIDIA Container Toolkit
-    pull_models:
-      - example-large:Q4_K_M
-      - example-small:fp16
+providers:
+  - type: ollama
+    options:
+      manage: true
+      gpus: false  # opt in only on a host with NVIDIA Container Toolkit
+      pull_models:
+        - example-large:Q4_K_M
+        - example-small:fp16
 
 models:
   - example-large:Q4_K_M
@@ -57,12 +57,12 @@ Desktop is normally CPU-only. Keep the benchmark backend in Docker if desired,
 but set Ollama to external mode and use Docker Desktop's host name:
 
 ```yaml
-provider:
-  type: ollama
-  options:
-    manage: false
-    host: host.docker.internal
-    port: 11434
+providers:
+  - type: ollama
+    options:
+      manage: false
+      host: host.docker.internal
+      port: 11434
 ```
 
 When the backend runs natively on macOS, use `host: localhost` instead. Do not
@@ -84,12 +84,12 @@ The `huggingface` provider loads a model from Hugging Face through
 container, and downloads model weights to the local Hugging Face cache.
 
 ```yaml
-provider:
-  type: huggingface
-  options:
-    model: google/gemma-3-1b-it
-    device: mps       # cpu, mps (Apple Silicon), or cuda
-    dtype: auto
+providers:
+  - type: huggingface
+    options:
+      model: google/gemma-3-1b-it
+      device: mps       # cpu, mps (Apple Silicon), or cuda
+      dtype: auto
 ```
 
 Use `device: mps` when the backend runs natively on an Apple Silicon Mac. A
@@ -105,10 +105,10 @@ execution:
   workers: 1         # maximum number of jobs in parallel mode
 ```
 
-If there are two models and two benchmarks, the experiment creates four jobs. With
+If there are two providers, two models, and two benchmarks, the experiment creates eight jobs. With
 `sequential`, they run one after another. With `parallel`, at most `workers` jobs
 can be submitted at once. The provider still acts as a concurrency gate:
-providers are serialized unless `provider.supports_concurrency: true` is set.
+providers are serialized unless `providers[].supports_concurrency: true` is set.
 Only enable that flag for a server that can safely handle simultaneous requests;
 it is normally false for local Ollama, vLLM, and llama.cpp instances. `workers`
 must be at least 1 and has no effect in sequential mode.
