@@ -13,7 +13,7 @@ frontend/dist/
 experiments/*.json
 experiments/.state/
 results/*.json
-results/scalabilty/*.json
+results/scalability/*.json
 logs/*
 
 !experiments/examples/
