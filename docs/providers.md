@@ -5,7 +5,7 @@ permalink: /providers/
 
 # Providers and experiment definitions
 
-An experiment selects one provider, one or more model identifiers, benchmark tasks, and execution settings. Each model-task combination becomes a job.
+An experiment selects one or more providers, model identifiers, benchmark tasks, and execution settings. Each provider/model/task combination becomes a job.
 
 Start from [`infrastructure/templates/experiment_template.yaml`]({{ site.repository_url }}/blob/main/infrastructure/templates/experiment_template.yaml).
 
@@ -118,7 +118,7 @@ Only enable that flag for a server that can safely handle simultaneous requests;
 it is normally false for local Ollama, vLLM, and llama.cpp instances. `workers`
 must be at least 1 and has no effect in sequential mode.
 
-`keep_alive` and `supports_concurrency` belong under `provider`, not under
+`keep_alive` and `supports_concurrency` belong under each item in `providers`, not under
 `execution`. `keep_alive: true` leaves a managed provider running after the
 experiment; it does not change the number of jobs running concurrently.
 
@@ -164,7 +164,7 @@ must be checked against the installed harness version and task requirements.
 
 An experiment can also measure streamed chat-completion performance while the
 number of simultaneous virtual users increases. Add a `load_testing` section;
-each value in `concurrent_users` creates one load-test job for each model. `input` is sent
+each value in `concurrent_users` creates one load-test job for each provider and model. `input` is sent
 by every virtual user and `max_output_tokens` limits each response. The input
 can be literal text or a `file://` URI. Files are read as UTF-8 before the test
 starts, so every request uses exactly the same contents. Use

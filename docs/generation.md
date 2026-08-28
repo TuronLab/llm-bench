@@ -1,7 +1,7 @@
 # Generation settings
 
 Experiments can define common generation parameters under `generation`. These
-settings are used by benchmark runs (through `gen_kw`) and by load tests
+settings are used by benchmark runs (through `gen_kwargs`) and by load tests
 when the provider supports the corresponding OpenAI-compatible request field.
 
 All fields are optional. When a field is omitted, the provider or evaluation

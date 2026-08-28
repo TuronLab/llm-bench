@@ -16,8 +16,15 @@ load_testing:
   input: "file://./experiments/inputs/load-testing-long-prompt.md"
   max_output_tokens: 128
   requests_per_user: 2
-  temperature: 0
   timeout_seconds: 120
+
+generation:
+  temperature: 0.7
+  top_p: 0.9
+  max_tokens: 128
+  frequency_penalty: 0
+  presence_penalty: 0
+  seed: 42
 ```
 
 `input` can be literal text or a UTF-8 `.txt`/`.md` `file://` URI. When it is a
