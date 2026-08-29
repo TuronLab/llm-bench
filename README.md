@@ -104,6 +104,8 @@ llm-bench experiment run experiments/examples/quickstart.yaml
 Use `--overwrite` to re-run items already executed with the same configuration;
 otherwise, equivalent items are skipped.
 
+The dashboard summary averages results with the highest `limit`; enable `Show all experiments with metadata` to see every configuration.
+
 ```bash
 llm-bench experiment run experiments/examples/quickstart.yaml --overwrite
 ```

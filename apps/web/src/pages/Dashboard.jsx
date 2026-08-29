@@ -99,7 +99,7 @@ export default function Dashboard() {
         checked={showMetadata}
           onChange={(e) => setShowMetadata(e.target.checked)}
         />
-        Show metadata
+        Show all experiments with metadata
       </label>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table>

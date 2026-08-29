@@ -155,6 +155,13 @@ def _primary_score(result: BenchmarkResult) -> dict:
     """
     metrics = result.metrics or {}
     primary_key = next(iter(metrics), None)
+    extra_conf = result.metadata.metadata.get("extra_conf", {})
+    harness_args = result.metadata.execution_config.get("extra_harness_args", {})
+    limit = extra_conf.get("limit", harness_args.get("limit", 0))
+    try:
+        limit = float(limit)
+    except (TypeError, ValueError):
+        limit = 0
     return {
         "provider": result.metadata.provider,
         "metadata": result.metadata.metadata,
@@ -162,14 +169,18 @@ def _primary_score(result: BenchmarkResult) -> dict:
         "value": metrics.get(primary_key) if primary_key else None,
         "all_metrics": metrics,
         "timestamp": result.metadata.timestamp.isoformat(),
+        "limit": limit,
     }
 
 
 def _aggregate_scores(scores: list[dict]) -> dict:
-    """Return the historical summary value and retain provider-level scores."""
-    values = [score["value"] for score in scores if isinstance(score.get("value"), (int, float))]
+    """Average scores from the runs with the highest data limit."""
+    highest_limit = max(score.get("limit", 0) for score in scores)
+    selected_scores = [score for score in scores if score.get("limit", 0) == highest_limit]
+    values = [score["value"] for score in selected_scores if isinstance(score.get("value"), (int, float))]
+    selected = max(selected_scores, key=lambda score: score.get("timestamp", ""))
     return {
-        "primary_metric": scores[0].get("primary_metric"),
+        "primary_metric": selected.get("primary_metric"),
         "value": sum(values) / len(values) if values else None,
         "providers": sorted(scores, key=lambda score: score.get("provider", "")),
     }
