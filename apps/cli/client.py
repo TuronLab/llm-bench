@@ -35,10 +35,10 @@ class ApiClient:
         except httpx.RequestError as exc:
             self._raise_connection_error(exc)
 
-    def post(self, path: str, json: Optional[dict] = None) -> Any:
+    def post(self, path: str, json: Optional[dict] = None, params: Optional[dict] = None) -> Any:
         try:
             with httpx.Client(timeout=30.0) as client:
-                return self._handle(client.post(f"{self.base_url}{path}", json=json))
+                return self._handle(client.post(f"{self.base_url}{path}", params=params, json=json))
         except httpx.RequestError as exc:
             self._raise_connection_error(exc)
 

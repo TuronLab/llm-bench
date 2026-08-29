@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -93,15 +94,28 @@ def _interactive_wizard() -> ExperimentDefinition:
 def run(
     experiment: str = typer.Argument(..., help="Experiment YAML path OR an existing experiment ID"),
     watch: bool = typer.Option(True, help="Stream progress until completion"),
+    overwrite: bool = typer.Option(False, help="Re-run equivalent benchmark/load-test items"),
 ):
     """Create (if given a file) and run an experiment, optionally streaming progress."""
     experiment_id = experiment
     path = Path(experiment)
     if path.exists():
         definition = _load_definition(path)
-        record = client.post("/experiments", json=definition.model_dump(mode="json"))
+        record = client.post("/experiments", params={"overwrite": overwrite}, json=definition.model_dump(mode="json"))
         experiment_id = record["id"]
         console.print(f"Created experiment [bold cyan]{experiment_id}[/bold cyan]")
+        for item in record.get("skipped_items", []):
+            label = item["benchmark"] or f"{item['concurrent_users']} usuarios"
+            detail = item["existing_experiment"]
+            console.print(
+                f"[yellow]Skipped[/yellow] {item['provider']} / {item['model']} / {label}: "
+                f"an equivalent experiment already exists in {item['existing_experiment_id']}\n"
+                f"Configuration:\n{json.dumps(detail, indent=2, ensure_ascii=False)}"
+            )
+            import logging
+            logging.getLogger("benchlab.cli.experiments").info(
+                "Skipped equivalent item provider=%s model=%s item=%s existing_experiment=%s details=%s",
+                item["provider"], item["model"], label, item["existing_experiment_id"], detail)
 
     client.post(f"/experiments/{experiment_id}/run")
     console.print(f"Started experiment [bold cyan]{experiment_id}[/bold cyan]")

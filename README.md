@@ -101,6 +101,13 @@ export BENCHLAB_API_URL=http://localhost:8000/api/v1
 llm-bench experiment run experiments/examples/quickstart.yaml
 ```
 
+Use `--overwrite` to re-run items already executed with the same configuration;
+otherwise, equivalent items are skipped.
+
+```bash
+llm-bench experiment run experiments/examples/quickstart.yaml --overwrite
+```
+
 Use `uv tool install --editable .` while developing. The API must already be running; for a local API without Compose, run `uv sync --group api` followed by `uv run --group api uvicorn apps.api.app.main:app --reload`.
 
 ### Docker Compose

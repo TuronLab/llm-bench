@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from typing import Any
 from datetime import datetime
 from typing import Optional
 
@@ -107,7 +108,40 @@ def recover_interrupted_experiments() -> int:
     return recovered
 
 
-def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
+def _item_signature(definition: ExperimentDefinition, provider_name: str, model: str,
+                    benchmark: str | None = None, concurrent_users: int | None = None) -> dict[str, Any]:
+    """Canonical execution signature for one benchmark/load-test item."""
+    data = definition.model_dump(mode="json", exclude={"name", "description", "benchmarks"})
+    data["providers"] = [p for p in data["providers"] if (p.get("name") or p["type"]) == provider_name]
+    data["models"] = [model]
+    if data.get("load_testing") is not None:
+        data["load_testing"] = dict(data["load_testing"])
+        data["load_testing"].pop("concurrent_users", None)
+        data["load_testing"]["_item_concurrent_users"] = concurrent_users
+    data["_item"] = {"benchmark": benchmark, "concurrent_users": concurrent_users}
+    return data
+
+
+def _existing_item_signatures() -> dict[tuple[str, str, str, int | None], ExperimentRecord]:
+    matches = {}
+    for record in experiment_store.list_all():
+        definition = record.definition
+        for provider in definition.providers:
+            provider_name = provider.name or provider.type
+            for model in definition.models:
+                for benchmark in definition.benchmarks:
+                    key = ("benchmark", provider_name, model, benchmark)
+                    matches.setdefault(key, record)
+                if definition.load_testing:
+                    for users in definition.load_testing.concurrent_users:
+                        key = ("load_testing", provider_name, model, users)
+                        matches.setdefault(key, record)
+    return matches
+
+
+def create_experiment(definition: ExperimentDefinition, overwrite: bool = False) -> ExperimentRecord:
+    existing = _existing_item_signatures() if not overwrite else {}
+    skipped: list[dict[str, Any]] = []
     jobs = [
         JobRecord(
             experiment_id="",  # filled in below once we know the experiment id
@@ -116,9 +150,13 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
             benchmark=benchmark,
         )
         for provider in definition.providers
+        for provider_name in [provider.name or provider.type]
         for model in definition.models
         for benchmark in definition.benchmarks
-        for provider_name in [provider.name or provider.type]
+        if not (existing.get(("benchmark", provider_name, model, benchmark)) and
+                _item_signature(definition, provider_name, model, benchmark=benchmark) ==
+                _item_signature(existing[("benchmark", provider_name, model, benchmark)].definition,
+                                provider_name, model, benchmark=benchmark))
     ]
     if definition.load_testing:
         jobs.extend(
@@ -130,15 +168,37 @@ def create_experiment(definition: ExperimentDefinition) -> ExperimentRecord:
                 kind="load_testing",
             )
             for provider in definition.providers
+            for provider_name in [provider.name or provider.type]
             for model in definition.models
             for concurrent_users in definition.load_testing.concurrent_users
-            for provider_name in [provider.name or provider.type]
+            if not (existing.get(("load_testing", provider_name, model, concurrent_users)) and
+                    _item_signature(definition, provider_name, model, concurrent_users=concurrent_users) ==
+                    _item_signature(existing[("load_testing", provider_name, model, concurrent_users)].definition,
+                                    provider_name, model, concurrent_users=concurrent_users))
         )
     record = ExperimentRecord(definition=definition, status=ExperimentStatus.DRAFT, jobs=jobs)
+    for key, old in existing.items():
+        kind, provider_name, model, item = key
+        if (model in definition.models and provider_name in {p.name or p.type for p in definition.providers} and
+            ((kind == "benchmark" and item in definition.benchmarks) or
+             (kind == "load_testing" and definition.load_testing and item in definition.load_testing.concurrent_users))):
+            if _item_signature(definition, provider_name, model, benchmark=item if kind == "benchmark" else None,
+                               concurrent_users=item if kind == "load_testing" else None) == _item_signature(
+                               old.definition, provider_name, model, benchmark=item if kind == "benchmark" else None,
+                               concurrent_users=item if kind == "load_testing" else None):
+                skipped.append({"kind": kind, "provider": provider_name, "model": model,
+                                "benchmark": item if kind == "benchmark" else None,
+                                "concurrent_users": item if kind == "load_testing" else None,
+                                "existing_experiment_id": old.id,
+                                "existing_experiment": old.definition.model_dump(mode="json")})
+    record_skipped = skipped
+    # Keep the information in the API response without changing the persisted schema.
+    record.__dict__["skipped_items"] = record_skipped
     for job in record.jobs:
         job.experiment_id = record.id
     experiment_store.save(record)
-    logger.info("Created experiment %s (%s) with %d jobs", record.id, definition.name, len(jobs))
+    logger.info("Created experiment %s (%s) with %d jobs; skipped %d equivalent items",
+                record.id, definition.name, len(jobs), len(skipped))
     return record
 
 

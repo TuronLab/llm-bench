@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from apps.api.app.services import experiment_service
 from infrastructure.storage.paths import LOGS_DIR
@@ -15,9 +15,11 @@ def list_experiments():
 
 
 @router.post("", status_code=201)
-def create_experiment(definition: ExperimentDefinition):
-    record = experiment_service.create_experiment(definition)
-    return record
+def create_experiment(definition: ExperimentDefinition, overwrite: bool = Query(False)):
+    record = experiment_service.create_experiment(definition, overwrite=overwrite)
+    response = record.model_dump(mode="json")
+    response["skipped_items"] = record.__dict__.get("skipped_items", [])
+    return response
 
 
 @router.get("/{experiment_id}")
